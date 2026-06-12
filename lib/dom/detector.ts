@@ -1,5 +1,5 @@
-const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const DAY_PATTERN = /^(Mo|Di|Mi|Do|Fr|Sa|So)\s*(\d{1,2})$/;
+const KNOWN_IDS = ['calenderAndRosterLine'];
 
 export interface DayBarInfo {
   container: HTMLElement;
@@ -10,19 +10,22 @@ export interface DayBarInfo {
 
 export function detectDayBar(customSelector?: string): DayBarInfo | null {
   if (customSelector) {
-    return detectWithSelector(customSelector);
+    const el = document.querySelector<HTMLElement>(customSelector);
+    if (el) {
+      const cells = findDayCells(el);
+      if (cells) return buildDayBarInfo(el, cells);
+    }
   }
+
+  for (const id of KNOWN_IDS) {
+    const el = document.getElementById(id);
+    if (el) {
+      const cells = findDayCells(el);
+      if (cells) return buildDayBarInfo(el, cells);
+    }
+  }
+
   return detectAutomatically();
-}
-
-function detectWithSelector(selector: string): DayBarInfo | null {
-  const el = document.querySelector<HTMLElement>(selector);
-  if (!el) return null;
-
-  const cells = findDayCells(el);
-  if (!cells) return null;
-
-  return buildDayBarInfo(el, cells);
 }
 
 function detectAutomatically(): DayBarInfo | null {
@@ -33,21 +36,28 @@ function detectAutomatically(): DayBarInfo | null {
 
   for (const candidate of candidates) {
     const cells = findDayCells(candidate);
-    if (cells) {
-      return buildDayBarInfo(candidate, cells);
-    }
+    if (cells) return buildDayBarInfo(candidate, cells);
   }
 
   return null;
 }
 
 function findDayCells(container: HTMLElement): HTMLElement[] | null {
-  const children = Array.from(container.children) as HTMLElement[];
-  if (children.length < 28) return null;
+  const children = Array.from(container.querySelectorAll<HTMLElement>('td, th, div > div, span'));
+  if (children.length < 28) {
+    const directChildren = Array.from(container.children) as HTMLElement[];
+    if (directChildren.length >= 28) {
+      return matchDayCells(directChildren);
+    }
+    return matchDayCells(children);
+  }
+  return matchDayCells(children);
+}
 
+function matchDayCells(elements: HTMLElement[]): HTMLElement[] | null {
   const matched: { el: HTMLElement; day: number }[] = [];
 
-  for (const child of children) {
+  for (const child of elements) {
     const text = (child.textContent ?? '').trim().replace(/\s+/g, ' ');
     const match = DAY_PATTERN.exec(text);
     if (match) {
@@ -72,12 +82,13 @@ function buildDayBarInfo(
   cells: HTMLElement[],
 ): DayBarInfo {
   const daysInMonth = cells.length;
-  const monthSelect = document.querySelector<HTMLSelectElement>(
-    'select, [class*="month"]',
-  );
 
   let year = new Date().getFullYear();
   let month = new Date().getMonth() + 1;
+
+  const monthSelect = document.querySelector<HTMLSelectElement>(
+    'select[name*="monat" i], select[name*="month" i], select',
+  );
 
   if (monthSelect) {
     const val = monthSelect.value || monthSelect.textContent || '';
@@ -87,7 +98,14 @@ function buildDayBarInfo(
       year = parsed.year;
     }
   } else {
-    month = guessMonthFromDayCount(daysInMonth, year);
+    const pageText = document.body.textContent ?? '';
+    const parsed = parseMonthFromText(pageText);
+    if (parsed) {
+      month = parsed.month;
+      year = parsed.year;
+    } else {
+      month = guessMonthFromDayCount(daysInMonth, year);
+    }
   }
 
   return { container, cells, month, year };
@@ -103,7 +121,7 @@ const MONTH_NAMES: Record<string, number> = {
 function parseMonthFromText(
   text: string,
 ): { month: number; year: number } | null {
-  const lower = text.toLowerCase().trim();
+  const lower = text.toLowerCase();
 
   for (const [name, num] of Object.entries(MONTH_NAMES)) {
     if (lower.includes(name)) {

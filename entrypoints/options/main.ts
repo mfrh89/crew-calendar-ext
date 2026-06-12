@@ -59,9 +59,24 @@ function renderCalendars() {
   }
 }
 
+async function requestHostPermission(url: string): Promise<boolean> {
+  try {
+    const origin = new URL(url).origin + '/*';
+    return await browser.permissions.request({ origins: [origin] });
+  } catch {
+    return false;
+  }
+}
+
 testUrlBtn.addEventListener('click', async () => {
   const url = newCalUrlInput.value.trim();
   if (!url) return;
+
+  const granted = await requestHostPermission(url);
+  if (!granted) {
+    showStatus(testStatusEl, 'Permission denied. The extension needs access to fetch this URL.', 'error');
+    return;
+  }
 
   testUrlBtn.disabled = true;
   testUrlBtn.textContent = '...';
@@ -79,9 +94,11 @@ testUrlBtn.addEventListener('click', async () => {
   }
 });
 
-addCalBtn.addEventListener('click', () => {
+addCalBtn.addEventListener('click', async () => {
   const url = newCalUrlInput.value.trim();
   if (!url) return;
+
+  await requestHostPermission(url);
 
   calendarSources.push({
     url,
