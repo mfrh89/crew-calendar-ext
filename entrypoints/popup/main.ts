@@ -1,6 +1,5 @@
 import './style.css';
-import { syncStateStorage } from '@/lib/storage/settings';
-import { hasCredentials } from '@/lib/storage/credentials';
+import { settingsStorage, syncStateStorage } from '@/lib/storage/settings';
 
 const statusIcon = document.getElementById('statusIcon')!;
 const statusText = document.getElementById('statusText')!;
@@ -9,23 +8,22 @@ const syncNowBtn = document.getElementById('syncNow') as HTMLButtonElement;
 const openOptionsBtn = document.getElementById('openOptions')!;
 
 async function render() {
-  const configured = await hasCredentials();
+  const settings = await settingsStorage.getValue();
 
-  if (!configured) {
+  if (settings.calendarSources.length === 0) {
     statusIcon.className = 'icon unconfigured';
-    statusText.textContent = 'Not configured';
-    lastSyncEl.textContent = 'Open settings to connect your calendar.';
+    statusText.textContent = 'No calendars added';
+    lastSyncEl.textContent = 'Open settings to add a calendar URL.';
     syncNowBtn.disabled = true;
     return;
   }
 
   const state = await syncStateStorage.getValue();
-
   statusIcon.className = `icon ${state.status}`;
 
   switch (state.status) {
     case 'idle':
-      statusText.textContent = 'Connected';
+      statusText.textContent = `${settings.calendarSources.length} calendar(s)`;
       break;
     case 'syncing':
       statusText.textContent = 'Syncing...';

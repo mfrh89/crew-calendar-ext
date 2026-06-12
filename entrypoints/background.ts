@@ -1,8 +1,7 @@
-import { loadCredentials } from '@/lib/storage/credentials';
-import { settingsStorage, syncStateStorage, calendarsStorage } from '@/lib/storage/settings';
+import { settingsStorage, syncStateStorage } from '@/lib/storage/settings';
 import { saveEvents, clearOldEvents } from '@/lib/storage/events';
-import { connectAndFetchCalendars, fetchEventsForMonth } from '@/lib/caldav/client';
-import type { BackgroundMessage, CalDAVConfig } from '@/lib/types';
+import { fetchICSEvents } from '@/lib/caldav/client';
+import type { BackgroundMessage } from '@/lib/types';
 
 const ALARM_NAME = 'crew-calendar-sync';
 
@@ -17,8 +16,8 @@ export default defineBackground(() => {
       return true;
     }
 
-    if (message.type === 'TEST_CONNECTION') {
-      testConnection(message.payload).then(sendResponse);
+    if (message.type === 'TEST_ICS') {
+      testICS(message.url).then(sendResponse);
       return true;
     }
 
@@ -37,24 +36,18 @@ async function setupAlarm(): Promise<void> {
   });
 }
 
-async function testConnection(config: CalDAVConfig) {
+async function testICS(url: string) {
   try {
-    const calendars = await connectAndFetchCalendars(config);
-    return { success: true, calendars };
+    const events = await fetchICSEvents(url, '#4285f4');
+    return { success: true, eventCount: events.length };
   } catch (e) {
     return { success: false, error: String(e) };
   }
 }
 
 async function syncAll(): Promise<void> {
-  const credentials = await loadCredentials();
-  if (!credentials) return;
-
   const settings = await settingsStorage.getValue();
-  const selectedUrls = settings.selectedCalendarUrls;
-  if (selectedUrls.length === 0) return;
-
-  const calendars = await calendarsStorage.getValue();
+  if (settings.calendarSources.length === 0) return;
 
   await syncStateStorage.setValue({ lastSync: null, status: 'syncing' });
 
@@ -63,28 +56,32 @@ async function syncAll(): Promise<void> {
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
 
-    const monthsToSync = [
+    const allEvents = [];
+    for (const source of settings.calendarSources) {
+      const events = await fetchICSEvents(source.url, source.color);
+      allEvents.push(...events);
+    }
+
+    const monthsToStore = [
       { y: month === 1 ? year - 1 : year, m: month === 1 ? 12 : month - 1 },
       { y: year, m: month },
       { y: month === 12 ? year + 1 : year, m: month === 12 ? 1 : month + 1 },
     ];
 
-    for (const { y, m } of monthsToSync) {
-      const allEvents = [];
+    for (const { y, m } of monthsToStore) {
+      const monthStart = new Date(y, m - 1, 1);
+      const monthEnd = new Date(y, m, 0, 23, 59, 59);
 
-      for (const calUrl of selectedUrls) {
-        const cal = calendars.find((c) => c.url === calUrl);
-        const color = cal?.color ?? '#4285f4';
+      const monthEvents = allEvents.filter((ev) => {
+        const start = new Date(ev.dtstart);
+        const end = new Date(ev.dtend);
+        return start <= monthEnd && end >= monthStart;
+      });
 
-        const events = await fetchEventsForMonth(credentials, calUrl, color, y, m);
-        allEvents.push(...events);
-      }
-
-      await saveEvents(y, m, allEvents);
+      await saveEvents(y, m, monthEvents);
     }
 
     await clearOldEvents(year, month);
-
     await syncStateStorage.setValue({
       lastSync: new Date().toISOString(),
       status: 'idle',

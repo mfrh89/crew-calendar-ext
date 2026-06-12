@@ -52,7 +52,7 @@ export function injectStrip(
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background: ${ev.calendarColor};
+          background: ${ev.color};
           cursor: pointer;
           flex-shrink: 0;
         `;

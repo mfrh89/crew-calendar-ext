@@ -1,136 +1,112 @@
-import { saveCredentials, loadCredentials } from '@/lib/storage/credentials';
-import { settingsStorage, calendarsStorage } from '@/lib/storage/settings';
-import type { CalendarInfo } from '@/lib/types';
+import { settingsStorage } from '@/lib/storage/settings';
+import type { CalendarSource } from '@/lib/types';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-const serverUrlInput = $<HTMLInputElement>('serverUrl');
-const usernameInput = $<HTMLInputElement>('username');
-const passwordInput = $<HTMLInputElement>('password');
-const testBtn = $<HTMLButtonElement>('testConnection');
-const connectionStatus = $<HTMLDivElement>('connectionStatus');
-const calendarsSection = $<HTMLElement>('calendarsSection');
-const calendarList = $<HTMLDivElement>('calendarList');
+const calendarListEl = $<HTMLDivElement>('calendarList');
+const newCalUrlInput = $<HTMLInputElement>('newCalUrl');
+const newCalNameInput = $<HTMLInputElement>('newCalName');
+const newCalColorInput = $<HTMLInputElement>('newCalColor');
+const testUrlBtn = $<HTMLButtonElement>('testUrl');
+const addCalBtn = $<HTMLButtonElement>('addCal');
+const testStatusEl = $<HTMLDivElement>('testStatus');
 const targetUrlInput = $<HTMLInputElement>('targetUrl');
 const stripPositionSelect = $<HTMLSelectElement>('stripPosition');
 const syncIntervalSelect = $<HTMLSelectElement>('syncInterval');
 const saveBtn = $<HTMLButtonElement>('save');
-const saveStatus = $<HTMLSpanElement>('saveStatus');
+const saveStatusEl = $<HTMLSpanElement>('saveStatus');
+
+let calendarSources: CalendarSource[] = [];
 
 async function init() {
-  const creds = await loadCredentials();
-  if (creds) {
-    serverUrlInput.value = creds.serverUrl;
-    usernameInput.value = creds.username;
-    passwordInput.value = creds.password;
-  }
-
   const settings = await settingsStorage.getValue();
+  calendarSources = [...settings.calendarSources];
   targetUrlInput.value = settings.targetUrl;
   stripPositionSelect.value = settings.stripPosition;
   syncIntervalSelect.value = String(settings.syncIntervalMinutes);
-
-  const calendars = await calendarsStorage.getValue();
-  if (calendars.length > 0) {
-    renderCalendars(calendars, settings.selectedCalendarUrls);
-    calendarsSection.hidden = false;
-  }
+  renderCalendars();
 }
 
-function renderCalendars(calendars: CalendarInfo[], selected: string[]) {
-  calendarList.innerHTML = '';
-  for (const cal of calendars) {
+function renderCalendars() {
+  calendarListEl.innerHTML = '';
+  for (let i = 0; i < calendarSources.length; i++) {
+    const src = calendarSources[i];
     const item = document.createElement('div');
-    item.className = 'calendar-item';
+    item.className = 'cal-item';
 
-    const colorDot = document.createElement('div');
-    colorDot.className = 'calendar-color';
-    colorDot.style.background = cal.color;
+    const dot = document.createElement('div');
+    dot.className = 'cal-color';
+    dot.style.background = src.color;
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.value = cal.url;
-    checkbox.checked = selected.includes(cal.url);
-    checkbox.id = `cal-${cal.url}`;
+    const name = document.createElement('span');
+    name.className = 'cal-name';
+    name.textContent = src.name || 'Calendar';
 
-    const label = document.createElement('label');
-    label.htmlFor = checkbox.id;
-    label.textContent = cal.displayName;
+    const url = document.createElement('span');
+    url.className = 'cal-url';
+    url.textContent = src.url;
 
-    item.append(checkbox, colorDot, label);
-    calendarList.appendChild(item);
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'cal-remove';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => {
+      calendarSources.splice(i, 1);
+      renderCalendars();
+    });
+
+    item.append(dot, name, url, removeBtn);
+    calendarListEl.appendChild(item);
   }
 }
 
-testBtn.addEventListener('click', async () => {
-  const serverUrl = serverUrlInput.value.trim();
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value;
+testUrlBtn.addEventListener('click', async () => {
+  const url = newCalUrlInput.value.trim();
+  if (!url) return;
 
-  if (!serverUrl || !username || !password) {
-    showStatus(connectionStatus, 'Please fill in all fields.', 'error');
-    return;
-  }
+  testUrlBtn.disabled = true;
+  testUrlBtn.textContent = '...';
+  testStatusEl.hidden = true;
 
-  testBtn.disabled = true;
-  testBtn.textContent = 'Testing...';
-  connectionStatus.hidden = true;
+  const response = await browser.runtime.sendMessage({ type: 'TEST_ICS', url });
 
-  const response = await browser.runtime.sendMessage({
-    type: 'TEST_CONNECTION',
-    payload: { serverUrl, username, password, authMethod: 'Basic' },
-  });
-
-  testBtn.disabled = false;
-  testBtn.textContent = 'Test Connection';
+  testUrlBtn.disabled = false;
+  testUrlBtn.textContent = 'Test';
 
   if (response.success) {
-    const calendars = response.calendars as CalendarInfo[];
-    await calendarsStorage.setValue(calendars);
-
-    const settings = await settingsStorage.getValue();
-    const selected = settings.selectedCalendarUrls.length > 0
-      ? settings.selectedCalendarUrls
-      : calendars.map((c) => c.url);
-
-    renderCalendars(calendars, selected);
-    calendarsSection.hidden = false;
-
-    showStatus(connectionStatus, `Connected. Found ${calendars.length} calendar(s).`, 'success');
+    showStatus(testStatusEl, `OK - ${response.eventCount} events found.`, 'success');
   } else {
-    showStatus(connectionStatus, `Connection failed: ${response.error}`, 'error');
+    showStatus(testStatusEl, `Failed: ${response.error}`, 'error');
   }
 });
 
+addCalBtn.addEventListener('click', () => {
+  const url = newCalUrlInput.value.trim();
+  if (!url) return;
+
+  calendarSources.push({
+    url,
+    name: newCalNameInput.value.trim() || 'Calendar',
+    color: newCalColorInput.value,
+  });
+
+  newCalUrlInput.value = '';
+  newCalNameInput.value = '';
+  testStatusEl.hidden = true;
+  renderCalendars();
+});
+
 saveBtn.addEventListener('click', async () => {
-  const serverUrl = serverUrlInput.value.trim();
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value;
-
-  if (serverUrl && username && password) {
-    await saveCredentials({
-      serverUrl,
-      username,
-      password,
-      authMethod: 'Basic',
-    });
-  }
-
-  const selectedCalendarUrls = Array.from(
-    calendarList.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:checked'),
-  ).map((cb) => cb.value);
-
   await settingsStorage.setValue({
+    calendarSources,
     targetUrl: targetUrlInput.value.trim(),
     syncIntervalMinutes: parseInt(syncIntervalSelect.value, 10),
-    selectedCalendarUrls,
     stripPosition: stripPositionSelect.value as 'above' | 'below',
   });
 
   await browser.runtime.sendMessage({ type: 'SYNC_NOW' });
 
-  saveStatus.textContent = 'Saved!';
-  setTimeout(() => { saveStatus.textContent = ''; }, 2000);
+  saveStatusEl.textContent = 'Saved!';
+  setTimeout(() => { saveStatusEl.textContent = ''; }, 2000);
 });
 
 function showStatus(el: HTMLElement, message: string, type: 'success' | 'error') {

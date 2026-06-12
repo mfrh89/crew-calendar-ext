@@ -54,7 +54,7 @@ export default defineContentScript({
       const colorBar = document.createElement('div');
       colorBar.style.cssText = `
         height: 4px; border-radius: 4px 4px 0 0; margin: -20px -20px 16px;
-        background: ${event.calendarColor};
+        background: ${event.color};
       `;
 
       const title = document.createElement('h3');

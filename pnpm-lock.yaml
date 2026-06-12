@@ -8,18 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@preact/signals':
-        specifier: ^2.9.1
-        version: 2.9.1(preact@10.29.2)
       ical.js:
         specifier: ^2.2.1
         version: 2.2.1
-      preact:
-        specifier: ^10.29.2
-        version: 10.29.2
-      tsdav:
-        specifier: ^2.2.2
-        version: 2.2.2
     devDependencies:
       typescript:
         specifier: ^5.9.3
@@ -283,14 +274,6 @@ packages:
     resolution: {integrity: sha512-h104Kh26rR8tm+a3Qkc5S4VLYint3FE48as7+/5oCEcKR2idC/pF1G6AhIXKI+eHPJa/3J9i5z0Al47IeGHPkA==}
     engines: {node: '>=12'}
 
-  '@preact/signals-core@1.14.2':
-    resolution: {integrity: sha512-RZHdBj9ZF4n40Rp4jS052EHHjBWf96P9oNdXPfhQTovCuWY9iQn3Gq+gOTJSgBO9A/JBuPfMOWsSX/lIU9Pc/A==}
-
-  '@preact/signals@2.9.1':
-    resolution: {integrity: sha512-xVqN8mJjbSN5IB/8Ubmd9NN+Ew6zJswoRxrjZbH3YsgkMshFeO6d8zxEFpHRTq9GJZx7cnPs2CnCpFqtGXGNsw==}
-    peerDependencies:
-      preact: '>= 10.25.0 || >=11.0.0-0'
-
   '@rolldown/binding-android-arm64@1.0.3':
     resolution: {integrity: sha512-454rs7jHngixp/NMxd5srYD57OnzSlZ/eFTETjORQHLwJG1lRtmNOJcBerZlfu4GjKqeq8aCCIQrMdHyhI51Hw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -483,9 +466,6 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
-
-  base-64@1.0.0:
-    resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
 
   bluebird@3.7.2:
     resolution: {integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==}
@@ -1286,9 +1266,6 @@ packages:
     resolution: {integrity: sha512-dM0jVuXJPsDN6DvRpea484tCUaMiXWjuCn++HGTqUWzGDjv5tZkEZldAJ/UMlqRYGFrD/etByo4/xOuC/snX2A==}
     engines: {node: '>=20'}
 
-  preact@10.29.2:
-    resolution: {integrity: sha512-7tNmwg/7mzzAoB/8kSg6Hl37JraAZw3Z3A0JSY7VXlZwo82Xn0G7wKbNNs2qoF4ZEEsQGTwDAroNdqKs1ofJxQ==}
-
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
 
@@ -1507,10 +1484,6 @@ packages:
     resolution: {integrity: sha512-voyz6MApa1rQGUxT3E+BK7/ROe8itEx7vD8/HEvt4xwXucvQ5G5oeEiHkmHZJuBO21RpOf+YYm9MOivj709jow==}
     engines: {node: '>=14.14'}
 
-  tsdav@2.2.2:
-    resolution: {integrity: sha512-/uC/RItcdYVxUj8b2gT4CorAkUmDFUuzhgS4XVT+OVzGRE80hH5ldubcWH13dHa2T9rNaXu6UIEWHlQ1UL7H1Q==}
-    engines: {node: '>=18'}
-
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
@@ -1685,10 +1658,6 @@ packages:
   xdg-basedir@5.1.0:
     resolution: {integrity: sha512-GCPAHLvrIH13+c0SuacwvRYj2SxJXQ4kaVTT5xgL3kPrz56XxkF21IGhjSE1+W0aw7gpBWRGXLCPnPby6lSpmQ==}
     engines: {node: '>=12'}
-
-  xml-js@1.6.11:
-    resolution: {integrity: sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==}
-    hasBin: true
 
   xml2js@0.6.2:
     resolution: {integrity: sha512-T4rieHaC1EXcES0Kxxj4JWgaUQHDk+qwHcYOCFHfiwKz7tOVPLq7Hjq9dM1WCMhylqMEfP7hMcOIChvotiZegA==}
@@ -1901,13 +1870,6 @@ snapshots:
       '@pnpm/network.ca-file': 1.0.2
       config-chain: 1.1.13
 
-  '@preact/signals-core@1.14.2': {}
-
-  '@preact/signals@2.9.1(preact@10.29.2)':
-    dependencies:
-      '@preact/signals-core': 1.14.2
-      preact: 10.29.2
-
   '@rolldown/binding-android-arm64@1.0.3':
     optional: true
 
@@ -2044,8 +2006,6 @@ snapshots:
       when-exit: 2.1.5
 
   balanced-match@1.0.2: {}
-
-  base-64@1.0.0: {}
 
   bluebird@3.7.2: {}
 
@@ -2795,8 +2755,6 @@ snapshots:
 
   powershell-utils@0.1.0: {}
 
-  preact@10.29.2: {}
-
   process-nextick-args@2.0.1: {}
 
   process-warning@5.0.0: {}
@@ -3020,14 +2978,6 @@ snapshots:
       picomatch: 4.0.4
 
   tmp@0.2.5: {}
-
-  tsdav@2.2.2:
-    dependencies:
-      base-64: 1.0.0
-      debug: 4.4.3
-      xml-js: 1.6.11
-    transitivePeerDependencies:
-      - supports-color
 
   tslib@2.8.1: {}
 
@@ -3265,10 +3215,6 @@ snapshots:
       - yaml
 
   xdg-basedir@5.1.0: {}
-
-  xml-js@1.6.11:
-    dependencies:
-      sax: 1.6.0
 
   xml2js@0.6.2:
     dependencies:

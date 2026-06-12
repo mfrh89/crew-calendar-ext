@@ -19,9 +19,6 @@
     "wxt": "^0.20.26"
   },
   "dependencies": {
-    "@preact/signals": "^2.9.1",
-    "ical.js": "^2.2.1",
-    "preact": "^10.29.2",
-    "tsdav": "^2.2.2"
+    "ical.js": "^2.2.1"
   }
 }

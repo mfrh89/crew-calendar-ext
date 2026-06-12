@@ -1,12 +1,12 @@
 import ICAL from 'ical.js';
 import type { CalendarEvent } from '../types';
 
-export function parseCalendarObjects(
-  icalData: string,
-  calendarUrl: string,
-  calendarColor: string,
+export function parseICS(
+  icsData: string,
+  sourceUrl: string,
+  color: string,
 ): CalendarEvent[] {
-  const jcalData = ICAL.parse(icalData);
+  const jcalData = ICAL.parse(icsData);
   const comp = new ICAL.Component(jcalData);
   const vevents = comp.getAllSubcomponents('vevent');
   const events: CalendarEvent[] = [];
@@ -22,8 +22,8 @@ export function parseCalendarObjects(
         dtend: event.endDate.toJSDate().toISOString(),
         location: event.location || undefined,
         description: event.description || undefined,
-        calendarUrl,
-        calendarColor,
+        sourceUrl,
+        color,
         isAllDay: event.startDate.isDate,
       });
     } catch {

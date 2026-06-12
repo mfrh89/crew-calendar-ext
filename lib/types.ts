@@ -1,13 +1,6 @@
-export interface CalDAVConfig {
-  serverUrl: string;
-  username: string;
-  password: string;
-  authMethod: 'Basic' | 'OAuth';
-}
-
-export interface CalendarInfo {
+export interface CalendarSource {
   url: string;
-  displayName: string;
+  name: string;
   color: string;
 }
 
@@ -18,15 +11,15 @@ export interface CalendarEvent {
   dtend: string;
   location?: string;
   description?: string;
-  calendarUrl: string;
-  calendarColor: string;
+  sourceUrl: string;
+  color: string;
   isAllDay: boolean;
 }
 
 export interface Settings {
+  calendarSources: CalendarSource[];
   targetUrl: string;
   syncIntervalMinutes: number;
-  selectedCalendarUrls: string[];
   stripPosition: 'above' | 'below';
   customSelector?: string;
 }
@@ -39,7 +32,5 @@ export interface SyncState {
 
 export type BackgroundMessage =
   | { type: 'SYNC_NOW' }
-  | { type: 'SYNC_STATUS'; payload: SyncState }
-  | { type: 'TEST_CONNECTION'; payload: CalDAVConfig }
-  | { type: 'TEST_CONNECTION_RESULT'; success: boolean; calendars?: CalendarInfo[]; error?: string }
-  | { type: 'EVENTS_UPDATED'; month: string };
+  | { type: 'TEST_ICS'; url: string }
+  | { type: 'TEST_ICS_RESULT'; success: boolean; name?: string; eventCount?: number; error?: string };

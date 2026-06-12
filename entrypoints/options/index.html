@@ -11,28 +11,22 @@
       <h1>Crew Calendar Settings</h1>
 
       <section>
-        <h2>CalDAV Server</h2>
-        <div class="field">
-          <label for="serverUrl">Server URL</label>
-          <input type="url" id="serverUrl" placeholder="https://caldav.icloud.com" />
-          <small>iCloud: https://caldav.icloud.com | Nextcloud: https://your-server.com/remote.php/dav</small>
-        </div>
-        <div class="field">
-          <label for="username">Username</label>
-          <input type="text" id="username" placeholder="user@example.com" />
-        </div>
-        <div class="field">
-          <label for="password">App-specific Password</label>
-          <input type="password" id="password" />
-          <small>Use an app-specific password, not your main account password.</small>
-        </div>
-        <button id="testConnection" type="button">Test Connection</button>
-        <div id="connectionStatus" class="status" hidden></div>
-      </section>
-
-      <section id="calendarsSection" hidden>
         <h2>Calendars</h2>
+        <p class="hint">Paste the iCal/ICS URL from your calendar provider. You can add multiple calendars.</p>
+
         <div id="calendarList"></div>
+
+        <div class="add-calendar">
+          <input type="url" id="newCalUrl" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" />
+          <input type="text" id="newCalName" placeholder="Name (optional)" />
+          <div class="color-row">
+            <label for="newCalColor">Color</label>
+            <input type="color" id="newCalColor" value="#4285f4" />
+            <button id="testUrl" type="button">Test</button>
+            <button id="addCal" type="button" class="primary">Add</button>
+          </div>
+          <div id="testStatus" class="status" hidden></div>
+        </div>
       </section>
 
       <section>
@@ -40,7 +34,7 @@
         <div class="field">
           <label for="targetUrl">Airline Tool URL Pattern</label>
           <input type="text" id="targetUrl" placeholder="https://crew.airline.com/*" />
-          <small>Use * as wildcard. The calendar strip will only appear on pages matching this pattern.</small>
+          <small>Use * as wildcard. The calendar strip only appears on pages matching this pattern.</small>
         </div>
       </section>
 

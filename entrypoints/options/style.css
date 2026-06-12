@@ -25,7 +25,7 @@ h1 {
 h2 {
   font-size: 15px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   color: #555;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -39,6 +39,12 @@ section {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+.hint {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 12px;
+}
+
 .field {
   margin-bottom: 14px;
 }
@@ -50,7 +56,8 @@ label {
   margin-bottom: 4px;
 }
 
-input,
+input[type="url"],
+input[type="text"],
 select {
   width: 100%;
   padding: 8px 10px;
@@ -64,6 +71,15 @@ select:focus {
   outline: none;
   border-color: #4285f4;
   box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.15);
+}
+
+input[type="color"] {
+  width: 36px;
+  height: 32px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px;
+  cursor: pointer;
 }
 
 small {
@@ -125,7 +141,23 @@ button.primary:hover {
   color: #c62828;
 }
 
-.calendar-item {
+.add-calendar input[type="url"],
+.add-calendar input[type="text"] {
+  margin-bottom: 8px;
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-row label {
+  margin: 0;
+  font-size: 13px;
+}
+
+.cal-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -133,20 +165,41 @@ button.primary:hover {
   border-bottom: 1px solid #f0f0f0;
 }
 
-.calendar-item:last-child {
+.cal-item:last-child {
   border-bottom: none;
 }
 
-.calendar-color {
+.cal-color {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.calendar-item label {
-  display: inline;
+.cal-name {
+  flex: 1;
   font-size: 14px;
-  font-weight: normal;
+}
+
+.cal-url {
+  font-size: 11px;
+  color: #aaa;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal-remove {
+  background: none;
+  border: none;
+  color: #c62828;
   cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.cal-remove:hover {
+  color: #e53935;
 }

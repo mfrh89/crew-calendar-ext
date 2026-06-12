@@ -1,11 +1,11 @@
 import { storage } from 'wxt/utils/storage';
-import type { Settings, SyncState, CalendarInfo } from '../types';
+import type { Settings, SyncState } from '../types';
 
 export const settingsStorage = storage.defineItem<Settings>('local:settings', {
   defaultValue: {
+    calendarSources: [],
     targetUrl: '',
     syncIntervalMinutes: 30,
-    selectedCalendarUrls: [],
     stripPosition: 'below',
   },
 });
@@ -15,8 +15,4 @@ export const syncStateStorage = storage.defineItem<SyncState>('local:syncState',
     lastSync: null,
     status: 'idle',
   },
-});
-
-export const calendarsStorage = storage.defineItem<CalendarInfo[]>('local:calendars', {
-  defaultValue: [],
 });
