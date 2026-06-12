@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crew Calendar</title>
+    <link rel="stylesheet" href="./style.css" />
+    <meta name="manifest.type" content="browser_action" />
+  </head>
+  <body>
+    <div class="popup">
+      <h1>Crew Calendar</h1>
+      <div id="status" class="status-line">
+        <span id="statusIcon" class="icon"></span>
+        <span id="statusText">Loading...</span>
+      </div>
+      <div id="lastSync" class="meta"></div>
+      <div class="actions">
+        <button id="syncNow" type="button">Sync Now</button>
+        <button id="openOptions" type="button">Settings</button>
+      </div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

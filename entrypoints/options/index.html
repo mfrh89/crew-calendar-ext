@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crew Calendar - Settings</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Crew Calendar Settings</h1>
+
+      <section>
+        <h2>CalDAV Server</h2>
+        <div class="field">
+          <label for="serverUrl">Server URL</label>
+          <input type="url" id="serverUrl" placeholder="https://caldav.icloud.com" />
+          <small>iCloud: https://caldav.icloud.com | Nextcloud: https://your-server.com/remote.php/dav</small>
+        </div>
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="user@example.com" />
+        </div>
+        <div class="field">
+          <label for="password">App-specific Password</label>
+          <input type="password" id="password" />
+          <small>Use an app-specific password, not your main account password.</small>
+        </div>
+        <button id="testConnection" type="button">Test Connection</button>
+        <div id="connectionStatus" class="status" hidden></div>
+      </section>
+
+      <section id="calendarsSection" hidden>
+        <h2>Calendars</h2>
+        <div id="calendarList"></div>
+      </section>
+
+      <section>
+        <h2>Target URL</h2>
+        <div class="field">
+          <label for="targetUrl">Airline Tool URL Pattern</label>
+          <input type="text" id="targetUrl" placeholder="https://crew.airline.com/*" />
+          <small>Use * as wildcard. The calendar strip will only appear on pages matching this pattern.</small>
+        </div>
+      </section>
+
+      <section>
+        <h2>Display</h2>
+        <div class="field">
+          <label for="stripPosition">Strip Position</label>
+          <select id="stripPosition">
+            <option value="below">Below day bar</option>
+            <option value="above">Above day bar</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="syncInterval">Sync Interval (minutes)</label>
+          <select id="syncInterval">
+            <option value="15">15</option>
+            <option value="30" selected>30</option>
+            <option value="60">60</option>
+          </select>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="save" type="button" class="primary">Save</button>
+        <span id="saveStatus"></span>
+      </div>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
