@@ -1,9 +1,11 @@
 import { detectDayBar, watchMonthSelect } from '@/lib/dom/detector';
-import { injectStrip, removeStrip } from '@/lib/dom/injector';
+import { injectStrip, removeStrip, injectBanner, removeBanner } from '@/lib/dom/injector';
 import { observeDOMChanges } from '@/lib/dom/observer';
 import { loadEvents } from '@/lib/storage/events';
 import { settingsStorage } from '@/lib/storage/settings';
 import type { CalendarEvent, DayBarInfo } from '@/lib/types';
+
+const DAY_NAMES_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -33,21 +35,39 @@ export default defineContentScript({
     let modal: HTMLElement | null = null;
 
     async function render() {
+      const currentSettings = await settingsStorage.getValue();
+      if (!currentSettings.enabled) {
+        removeStrip();
+        removeBanner();
+        currentDayBar = null;
+        return;
+      }
+
       const dayBar = detectDayBar();
       if (!dayBar) {
         removeStrip();
+        removeBanner();
         currentDayBar = null;
         return;
       }
 
       currentDayBar = dayBar;
+      injectBanner(dayBar.anchorElement);
       const events = await loadEvents(dayBar.year, dayBar.month);
       console.log('[CrewCal] Rendering', events.length, 'events for', dayBar.month + '/' + dayBar.year);
-      injectStrip(dayBar, events, settings.stripPosition, showEventModal);
+      injectStrip(dayBar, events, settings.stripPosition, showEventsModal, showEventsModal);
     }
 
-    function showEventModal(event: CalendarEvent) {
+    function showEventsModal(events: CalendarEvent[], day: number) {
       closeModal();
+
+      const sorted = [...events].sort((a, b) => {
+        if (a.isAllDay !== b.isAllDay) return a.isAllDay ? -1 : 1;
+        return new Date(a.dtstart).getTime() - new Date(b.dtstart).getTime();
+      });
+
+      const date = new Date(currentDayBar!.year, currentDayBar!.month - 1, day);
+      const dayName = DAY_NAMES_DE[date.getDay()];
 
       const overlay = document.createElement('div');
       overlay.id = 'crew-calendar-modal-overlay';
@@ -59,45 +79,29 @@ export default defineContentScript({
 
       const card = document.createElement('div');
       card.style.cssText = `
-        background: #fff; border-radius: 8px; padding: 20px; min-width: 300px;
-        max-width: 420px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        background: #fff; border-radius: 8px; padding: 20px; min-width: 320px;
+        max-width: 440px; max-height: 80vh; overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         color: #333;
       `;
       card.addEventListener('click', (e) => e.stopPropagation());
 
-      const colorBar = document.createElement('div');
-      colorBar.style.cssText = `
-        height: 4px; border-radius: 4px 4px 0 0; margin: -20px -20px 16px;
-        background: ${event.color};
-      `;
+      const header = document.createElement('h3');
+      header.style.cssText = 'margin: 0 0 16px; font-size: 16px; font-weight: 600;';
+      header.textContent = `${dayName}, ${formatDate(date)}`;
 
-      const title = document.createElement('h3');
-      title.style.cssText = 'margin: 0 0 12px; font-size: 18px; font-weight: 600;';
-      title.textContent = event.summary;
+      const list = document.createElement('div');
+      list.style.cssText = 'display: flex; flex-direction: column; gap: 0;';
 
-      const details = document.createElement('div');
-      details.style.cssText = 'font-size: 14px; line-height: 1.6;';
-
-      const startDate = new Date(event.dtstart);
-      const endDate = new Date(event.dtend);
-
-      if (event.isAllDay) {
-        details.appendChild(detailRow('Datum', formatDate(startDate)));
-      } else {
-        details.appendChild(detailRow('Datum', formatDate(startDate)));
-        details.appendChild(detailRow('Zeit', `${formatTime(startDate)} - ${formatTime(endDate)}`));
-      }
-
-      if (event.location) {
-        details.appendChild(detailRow('Ort', event.location));
-      }
-
-      if (event.description) {
-        const desc = document.createElement('p');
-        desc.style.cssText = 'margin: 12px 0 0; color: #666; font-size: 13px; white-space: pre-wrap;';
-        desc.textContent = event.description.slice(0, 500);
-        details.appendChild(desc);
+      for (let i = 0; i < sorted.length; i++) {
+        const ev = sorted[i];
+        if (i > 0 && !ev.isAllDay && !sorted[i - 1].isAllDay) {
+          const divider = document.createElement('div');
+          divider.style.cssText = 'height: 1px; background: #eee; margin: 0;';
+          list.appendChild(divider);
+        }
+        list.appendChild(buildEventCard(ev));
       }
 
       const closeBtn = document.createElement('button');
@@ -109,10 +113,70 @@ export default defineContentScript({
       `;
       closeBtn.addEventListener('click', closeModal);
 
-      card.append(colorBar, title, details, closeBtn);
+      card.append(header, list, closeBtn);
       overlay.appendChild(card);
       document.body.appendChild(overlay);
       modal = overlay;
+    }
+
+    function buildEventCard(ev: CalendarEvent): HTMLElement {
+      const item = document.createElement('div');
+
+      if (ev.isAllDay) {
+        item.style.cssText = `
+          padding: 10px 12px; margin: 2px 0; border-radius: 6px;
+          background: ${ev.color}18; border-left: 3px solid ${ev.color};
+        `;
+      } else {
+        item.style.cssText = 'padding: 10px 0;';
+      }
+
+      const titleRow = document.createElement('div');
+      titleRow.style.cssText = `font-size: 15px; font-weight: 600; margin-bottom: 4px; color: ${ev.isAllDay ? ev.color : '#333'};`;
+      titleRow.textContent = ev.summary;
+
+      const timeRow = document.createElement('div');
+      timeRow.style.cssText = 'font-size: 13px; color: #555; margin-bottom: 4px;';
+      if (ev.isAllDay) {
+        timeRow.textContent = 'Ganztägig';
+      } else {
+        const s = new Date(ev.dtstart);
+        const e = new Date(ev.dtend);
+        timeRow.textContent = `${formatTime(s)} – ${formatTime(e)}`;
+      }
+
+      const metaRow = (icon: string, text: string, color?: string): HTMLElement => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display: flex; align-items: baseline; gap: 6px; font-size: 12px; color: #888; margin-bottom: 4px;';
+        const iconEl = document.createElement('span');
+        iconEl.style.cssText = 'flex-shrink: 0; width: 14px; text-align: center; font-size: 12px;';
+        iconEl.textContent = icon;
+        const textEl = document.createElement('span');
+        if (color) textEl.style.color = color;
+        textEl.textContent = text;
+        row.append(iconEl, textEl);
+        return row;
+      };
+
+      const calRow = document.createElement('div');
+      calRow.style.cssText = 'display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; margin-bottom: 4px;';
+      const dot = document.createElement('div');
+      dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${ev.color}; flex-shrink: 0; margin-left: 3px; margin-right: 3px;`;
+      const calName = document.createElement('span');
+      calName.textContent = ev.sourceName || 'Kalender';
+      calRow.append(dot, calName);
+
+      item.append(titleRow, timeRow, calRow);
+
+      if (ev.location) {
+        item.appendChild(metaRow('📍', ev.location));
+      }
+
+      if (ev.description) {
+        item.appendChild(metaRow('📝', ev.description.slice(0, 300)));
+      }
+
+      return item;
     }
 
     function closeModal() {
@@ -125,8 +189,9 @@ export default defineContentScript({
     });
 
     browser.storage.onChanged.addListener((changes) => {
-      const monthKeys = Object.keys(changes).filter((k) => k.startsWith('events_'));
-      if (monthKeys.length > 0) render();
+      if (changes['settings'] || Object.keys(changes).some((k) => k.startsWith('events_'))) {
+        render();
+      }
     });
 
     await render();
@@ -147,21 +212,6 @@ function matchesTarget(url: string, pattern: string): boolean {
     .replace(/\*/g, '.*');
 
   return new RegExp(escaped).test(normalizedUrl);
-}
-
-function detailRow(label: string, value: string): HTMLElement {
-  const row = document.createElement('div');
-  row.style.cssText = 'display: flex; gap: 8px;';
-
-  const lbl = document.createElement('span');
-  lbl.style.cssText = 'color: #888; min-width: 70px;';
-  lbl.textContent = label;
-
-  const val = document.createElement('span');
-  val.textContent = value;
-
-  row.append(lbl, val);
-  return row;
 }
 
 function formatDate(d: Date): string {

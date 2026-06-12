@@ -3,6 +3,7 @@ import type { Settings, SyncState } from '../types';
 
 export const settingsStorage = storage.defineItem<Settings>('local:settings', {
   defaultValue: {
+    enabled: true,
     calendarSources: [],
     targetUrl: '',
     syncIntervalMinutes: 30,

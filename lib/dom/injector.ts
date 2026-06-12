@@ -1,29 +1,59 @@
 import type { DayBarInfo, CalendarEvent } from '../types';
 
 const STRIP_ID = 'crew-calendar-strip';
+const BANNER_ID = 'crew-calendar-banner';
 const TOUCH_HEIGHT = 44;
+const MAX_DOTS = 3;
+const DOT_SIZE = 10;
+const DOT_OVERLAP = -3;
+
+export function injectBanner(container: HTMLElement): void {
+  document.getElementById(BANNER_ID)?.remove();
+
+  const banner = document.createElement('div');
+  banner.id = BANNER_ID;
+  banner.style.cssText = `
+    padding: 5px 10px;
+    background: #f8f8f4;
+    border-left: 3px solid #d4a017;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: #555;
+    line-height: 1.4;
+  `;
+  banner.innerHTML = '<strong style="color:#333;">Crew Calendar</strong> Personal calendar overlay — colored dots show your private events. Click for details.';
+
+  const canvas = container.querySelector('canvas');
+  if (canvas) {
+    container.insertBefore(banner, canvas);
+  } else {
+    container.prepend(banner);
+  }
+}
+
+export function removeBanner(): void {
+  document.getElementById(BANNER_ID)?.remove();
+}
 
 export function injectStrip(
   dayBar: DayBarInfo,
   events: CalendarEvent[],
-  position: 'above' | 'below',
-  onEventClick: (event: CalendarEvent) => void,
+  _position: 'above' | 'below',
+  onSingleClick: (events: CalendarEvent[], day: number) => void,
+  onDayClick: (events: CalendarEvent[], day: number) => void,
 ): HTMLElement {
   removeStrip();
 
-  const tr = document.createElement('tr');
-  tr.id = STRIP_ID;
-
-  const td = document.createElement('td');
-  td.setAttribute('colspan', '3');
-  td.style.cssText = 'padding: 0; border: none;';
+  const container = dayBar.anchorElement;
+  const canvas = container.querySelector('canvas');
 
   const strip = document.createElement('div');
+  strip.id = STRIP_ID;
   strip.style.cssText = `
     display: flex;
     width: ${dayBar.canvasWidth}px;
     background: #f0f0f0;
-    border-top: 2px solid #cc0000;
+    border-bottom: 2px solid #cc0000;
     font-family: Arial, sans-serif;
     box-sizing: border-box;
   `;
@@ -39,72 +69,94 @@ export function injectStrip(
       width: ${dayBar.columnWidth}px;
       height: ${TOUCH_HEIGHT}px;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 2px;
       box-sizing: border-box;
       border-right: 1px solid #ddd;
       background: ${isWeekend ? '#e0e0e0' : '#f0f0f0'};
       flex-shrink: 0;
     `;
 
-    if (dayEvents.length > 0) {
-      const maxDots = 3;
-      const visible = dayEvents.slice(0, maxDots);
+    if (dayEvents.length === 1) {
+      const dot = createDot(dayEvents[0]);
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onSingleClick(dayEvents, dayNum);
+      });
+      cell.appendChild(dot);
+    } else if (dayEvents.length > 1) {
+      cell.style.cursor = 'pointer';
+      const visible = dayEvents.slice(0, MAX_DOTS);
+      const hasOverflow = dayEvents.length > MAX_DOTS;
 
-      for (const ev of visible) {
-        const dot = document.createElement('div');
-        dot.style.cssText = `
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background: ${ev.color};
-          cursor: pointer;
-          flex-shrink: 0;
+      const dotGroup = document.createElement('div');
+      dotGroup.style.cssText = `
+        display: flex;
+        align-items: center;
+        pointer-events: none;
+      `;
+
+      for (let i = 0; i < visible.length; i++) {
+        const dot = createDot(visible[i]);
+        if (i > 0) dot.style.marginLeft = `${DOT_OVERLAP}px`;
+        dot.style.zIndex = String(visible.length - i);
+        dot.style.boxShadow = '0 0 0 1px #f0f0f0';
+        dotGroup.appendChild(dot);
+      }
+
+      if (hasOverflow) {
+        const badge = document.createElement('div');
+        badge.style.cssText = `
+          font-size: 8px;
+          color: #555;
+          font-weight: bold;
+          margin-left: 1px;
+          line-height: 1;
+          white-space: nowrap;
         `;
-        dot.title = formatTooltip(ev);
-        dot.addEventListener('click', (e) => {
-          e.stopPropagation();
-          onEventClick(ev);
-        });
-        cell.appendChild(dot);
+        badge.textContent = `+${dayEvents.length - MAX_DOTS}`;
+        dotGroup.appendChild(badge);
       }
 
-      if (dayEvents.length > maxDots) {
-        const overflow = document.createElement('div');
-        overflow.style.cssText = 'font-size: 9px; color: #666; cursor: pointer; line-height: 1;';
-        overflow.textContent = `+${dayEvents.length - maxDots}`;
-        overflow.addEventListener('click', (e) => {
-          e.stopPropagation();
-          onEventClick(dayEvents[0]);
-        });
-        cell.appendChild(overflow);
-      }
+      cell.appendChild(dotGroup);
+      cell.title = dayEvents.map(e => formatTooltip(e)).join('\n');
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onDayClick(dayEvents, dayNum);
+      });
     }
 
     strip.appendChild(cell);
   }
 
-  td.appendChild(strip);
-  tr.appendChild(td);
-
-  const anchor = dayBar.anchorElement;
-  const parentRow = anchor.closest('tr');
-  const insertTarget = parentRow ?? anchor;
-
-  if (position === 'above') {
-    insertTarget.parentNode?.insertBefore(tr, insertTarget);
+  if (canvas) {
+    container.insertBefore(strip, canvas);
   } else {
-    insertTarget.parentNode?.insertBefore(tr, insertTarget.nextSibling);
+    container.appendChild(strip);
   }
 
-  console.log('[CrewCal] Strip injected with', dayBar.daysInMonth, 'day cells,', TOUCH_HEIGHT + 'px height');
-  return tr;
+  console.log('[CrewCal] Strip injected with', dayBar.daysInMonth, 'cells');
+  return strip;
 }
 
 export function removeStrip(): void {
   document.getElementById(STRIP_ID)?.remove();
+}
+
+function createDot(event: CalendarEvent): HTMLDivElement {
+  const dot = document.createElement('div');
+  dot.style.cssText = `
+    width: ${DOT_SIZE}px;
+    height: ${DOT_SIZE}px;
+    border-radius: 50%;
+    background: ${event.color};
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+  `;
+  dot.title = formatTooltip(event);
+  return dot;
 }
 
 function groupEventsByDay(

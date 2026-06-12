@@ -12,6 +12,7 @@ export interface CalendarEvent {
   location?: string;
   description?: string;
   sourceUrl: string;
+  sourceName: string;
   color: string;
   isAllDay: boolean;
 }
@@ -27,6 +28,7 @@ export interface DayBarInfo {
 }
 
 export interface Settings {
+  enabled: boolean;
   calendarSources: CalendarSource[];
   targetUrl: string;
   syncIntervalMinutes: number;

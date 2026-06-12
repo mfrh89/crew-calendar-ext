@@ -2,7 +2,7 @@
   "name": "crew-calendar-ext",
   "description": "Private calendar overlay for airline crew scheduling tools",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.13",
   "type": "module",
   "scripts": {
     "dev": "wxt",

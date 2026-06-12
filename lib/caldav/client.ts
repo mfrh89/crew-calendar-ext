@@ -4,6 +4,7 @@ import type { CalendarEvent } from '../types';
 export async function fetchICSEvents(
   url: string,
   color: string,
+  name: string,
 ): Promise<CalendarEvent[]> {
   const fetchUrl = url.replace(/^webcal:\/\//, 'https://');
   const response = await fetch(fetchUrl);
@@ -11,5 +12,5 @@ export async function fetchICSEvents(
     throw new Error(`Failed to fetch calendar: ${response.status} ${response.statusText}`);
   }
   const icsData = await response.text();
-  return parseICS(icsData, url, color);
+  return parseICS(icsData, url, color, name);
 }

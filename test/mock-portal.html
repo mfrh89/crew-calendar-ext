@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Request - CrewMemberInterface</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    table { border-collapse: collapse; }
+    td { vertical-align: top; }
+
+    .noBorderTable {
+      width: 100%;
+      border: none;
+    }
+    .noBorderTable td {
+      border: none;
+      padding: 0;
+    }
+
+    /* Header bar */
+    #headerBar {
+      background-color: #000058;
+      color: #fff;
+      height: 24px;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      gap: 8px;
+    }
+    #headerBar .left { flex: 1; white-space: nowrap; }
+    #headerBar .center { display: flex; align-items: center; gap: 4px; }
+    #headerBar .right { display: flex; align-items: center; gap: 12px; }
+    #headerBar select { font-size: 11px; padding: 1px 2px; }
+    #headerBar a { color: #fff; text-decoration: underline; font-size: 11px; }
+
+    /* Calendar canvas container */
+
+    #calendarAndRosterLineContainer {
+      background-color: rgb(221, 221, 221);
+      height: 53px;
+      padding: 0;
+    }
+    canvas { display: block; }
+
+    /* Right info panel */
+    .infoPanel {
+      border: 1px solid #999;
+      font-size: 11px;
+      width: 130px;
+    }
+    .infoPanel td {
+      padding: 1px 4px;
+      border-bottom: 1px solid #ccc;
+      white-space: nowrap;
+    }
+    .infoPanel .label { text-align: right; font-weight: bold; }
+    .infoPanel .value { text-align: right; }
+
+    /* Button bar */
+    .buttonBar { margin-top: 2px; display: flex; gap: 0; }
+    .buttonBar button {
+      font-size: 11px;
+      padding: 3px 8px;
+      background: #ddd;
+      border: 1px solid #999;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .buttonBar button:hover { background: #ccc; }
+
+    /* Info text area */
+    .infoText {
+      border: 1px solid #999;
+      padding: 8px;
+      font-size: 11px;
+      font-family: monospace;
+      line-height: 1.5;
+      margin-top: 2px;
+      min-height: 120px;
+      background: #fff;
+    }
+
+    .mainTable { margin: 8px; width: calc(100% - 16px); }
+    .mainTable > tbody > tr > td { padding: 0; }
+
+  </style>
+</head>
+<body>
+
+<table class="mainTable">
+  <tbody>
+    <tr id="main_table_first_tr">
+      <td id="statusArea">
+        <table width="100%" class="noBorderTable">
+          <tbody>
+            <!-- Header -->
+            <tr>
+              <td colspan="3">
+                <div id="headerBar">
+                  <span class="left">KESSLER, LUKAS 518633K P1 MUC (M1/1M)</span>
+                  <span class="center">
+                    Monat:
+                    <select id="sel_month">
+                      <option value="1">Januar 2026</option>
+                      <option value="2">Februar 2026</option>
+                      <option value="3">Maerz 2026</option>
+                      <option value="4">April 2026</option>
+                      <option value="5">Mai 2026</option>
+                      <option value="6" selected>Juni 2026</option>
+                      <option value="7">Juli 2026</option>
+                      <option value="8">August 2026</option>
+                      <option value="9">September 2026</option>
+                      <option value="10">Oktober 2026</option>
+                      <option value="11">November 2026</option>
+                      <option value="12">Dezember 2026</option>
+                    </select>
+                  </span>
+                  <span class="right">
+                    Vergaerung:3194&nbsp; v172
+                    <a href="#">Hilfe</a>
+                  </span>
+                </div>
+              </td>
+              <td></td>
+            </tr>
+
+            <!-- Canvas for Calendar, Roster line and OFF-situation line -->
+            <tr>
+              <td id="calendarAndRosterLineContainer" colspan="3" style="background-color: rgb(221, 221, 221); height: 53px;">
+                <canvas id="calendarAndRosterLine" height="92" style="background: rgb(255, 255, 255);opacity:0;"></canvas>
+              </td>
+              <td style="width:130px;">
+                <table class="infoPanel" style="width:100%;">
+                  <tr><td class="label">Min / Max</td><td></td></tr>
+                  <tr><td class="label">Tausch</td><td class="value">00:00/44:29</td></tr>
+                  <tr><td class="label">zus. Einsatz</td><td class="value">--:-/36:29</td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Canvas for Submitted Requests -->
+            <tr>
+              <td colspan="3" style="padding:0;">
+                <canvas id="requestCanvas" height="60" style="background:#fff;opacity:0;"></canvas>
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Button bar + info text -->
+    <tr>
+      <td>
+        <div style="display:flex; gap:0; margin-top:2px;">
+          <div style="flex:1;">
+            <div class="buttonBar">
+              <button>Nachrichten</button>
+              <button>Tauschwunsch</button>
+              <button>1:1 Tausch</button>
+              <button>Zusaetzlicher Einsatz</button>
+              <button>Tausch Daten</button>
+              <button style="margin-left:auto;">Aktualisieren</button>
+              <button>Wechseln zum Jahresrequest</button>
+            </div>
+            <div class="infoText">
+CrewMemberInterface version: v172
+Server MPGP_CAB_PROD V4.28.1
+
+Heute : 12/06/26 11:52 UTC
+Streichschluss: 11/06/26 20:00    Fixpunkt  : 21/06/26 24:00
+Requestschluss: 21/06/26 24:00    Closing day: 27/06/26 24:00
+Keine Rueckmeldung aus der Einsatzplanung
+ETS: 12/06/26 - ETS-Lauf wurde durchgefuehrt.
+
+Anzahl verfuegbarer Umlaeufe: 2067 (604PU, 0PE, 57P1)
+SB-LINE: 112 (0PE, 3P1, 0PU)
+RE-LINE: 168 (0PE, 8P1, 0PU)
+            </div>
+          </div>
+          <div style="width:130px; display:flex; align-items:flex-end; justify-content:center; padding:8px;">
+            <div style="font-size:10px; letter-spacing:4px; color:#999; text-align:center; line-height:1.4;">
+              K E R N E L<br>S O F T W A R E
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+  const canvas = document.getElementById('calendarAndRosterLine');
+  const ctx = canvas.getContext('2d');
+  const reqCanvas = document.getElementById('requestCanvas');
+  const reqCtx = reqCanvas.getContext('2d');
+
+  const cols = 32;
+  const monthSelect = document.getElementById('sel_month');
+  const monthNames = {
+    'Januar':1,'Februar':2,'Maerz':3,'April':4,'Mai':5,'Juni':6,
+    'Juli':7,'August':8,'September':9,'Oktober':10,'November':11,'Dezember':12
+  };
+  const dayNamesDE = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+  const rosterBlocks = [
+    { start: 1, end: 2, label: 'BCN', color: '#000058' },
+    { start: 3, end: 3, label: 'HAM', color: '#000058' },
+    { start: 7, end: 7, label: 'OFF', color: '#888' },
+    { start: 10, end: 12, label: 'FRS', color: '#000058' },
+    { start: 14, end: 14, label: '', color: '#888' },
+    { start: 16, end: 19, label: 'BKK', color: '#000058' },
+    { start: 21, end: 21, label: 'OFFTAG', color: '#556b2f' },
+  ];
+
+  function sizeCanvases() {
+    const container = document.getElementById('calendarAndRosterLineContainer');
+    const w = container.clientWidth;
+    canvas.width = w;
+    reqCanvas.width = w;
+  }
+
+  function getMonthYear() {
+    const text = monthSelect.options[monthSelect.selectedIndex].text;
+    const m = text.match(/(\w+)\s+(\d{4})/);
+    return {
+      month: m ? (monthNames[m[1]] || 6) : 6,
+      year: m ? parseInt(m[2]) : 2026
+    };
+  }
+
+  function daysInMonth(m, y) { return new Date(y, m, 0).getDate(); }
+
+  function drawDayBar() {
+    const { month, year } = getMonthYear();
+    const days = daysInMonth(month, year);
+    const colW = canvas.width / cols;
+    const headerH = 30;
+    const rosterY = headerH + 1;
+    const rosterH = 20;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Day header cells
+    for (let i = 0; i < cols; i++) {
+      const x = Math.round(i * colW);
+      const w = Math.round((i + 1) * colW) - x;
+
+      if (i < days) {
+        const date = new Date(year, month - 1, i + 1);
+        const dow = date.getDay();
+        const isWeekend = dow === 0 || dow === 6;
+
+        // Cell background
+        ctx.fillStyle = isWeekend ? '#c0c0c0' : '#fff';
+        ctx.fillRect(x, 0, w, headerH);
+
+        // Day name + number
+        ctx.fillStyle = '#000';
+        ctx.font = '9px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(dayNamesDE[dow], x + w / 2, 12);
+        ctx.font = 'bold 10px Arial';
+        ctx.fillText(String(i + 1), x + w / 2, 25);
+
+        // Vertical cell border
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(x + w, 0);
+        ctx.lineTo(x + w, canvas.height);
+        ctx.stroke();
+      } else {
+        const overflowDay = i - days + 1;
+        ctx.fillStyle = '#ddd';
+        ctx.fillRect(x, 0, w, headerH);
+        if (overflowDay <= 2) {
+          const nm = month === 12 ? 1 : month + 1;
+          const ny = month === 12 ? year + 1 : year;
+          const date = new Date(ny, nm - 1, overflowDay);
+          ctx.fillStyle = '#666';
+          ctx.font = '9px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(dayNamesDE[date.getDay()], x + w / 2, 12);
+          ctx.font = 'bold 10px Arial';
+          ctx.fillText(String(overflowDay), x + w / 2, 25);
+        }
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(x + w, 0);
+        ctx.lineTo(x + w, canvas.height);
+        ctx.stroke();
+      }
+    }
+
+    // Horizontal line below header
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, headerH);
+    ctx.lineTo(canvas.width, headerH);
+    ctx.stroke();
+
+    // Roster blocks
+    for (const block of rosterBlocks) {
+      const x1 = Math.round((block.start - 1) * colW) + 1;
+      const x2 = Math.round(block.end * colW) - 1;
+      ctx.fillStyle = block.color;
+      ctx.fillRect(x1, rosterY + 2, x2 - x1, rosterH);
+      if (block.label) {
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 9px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(block.label, (x1 + x2) / 2, rosterY + 15);
+      }
+    }
+
+    // Red line (current day indicator, like the real portal)
+    const today = new Date();
+    if (today.getMonth() + 1 === month && today.getFullYear() === year) {
+      const todayCol = today.getDate() - 1;
+      const tx = Math.round(todayCol * colW);
+      const tw = Math.round((todayCol + 1) * colW) - tx;
+      ctx.strokeStyle = '#cc0000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(tx, rosterY + rosterH + 3);
+      ctx.lineTo(tx + tw, rosterY + rosterH + 3);
+      ctx.stroke();
+    }
+
+    // Lower grid lines (OFF-situation area)
+    ctx.lineWidth = 0.5;
+    for (let r = 0; r < 3; r++) {
+      ctx.strokeStyle = '#bbb';
+      ctx.beginPath();
+      ctx.moveTo(0, rosterY + rosterH + 8 + r * 14);
+      ctx.lineTo(canvas.width, rosterY + rosterH + 8 + r * 14);
+      ctx.stroke();
+    }
+  }
+
+  function drawRequestCanvas() {
+    const colW = reqCanvas.width / cols;
+    const rowLabels = ['H', '1', '2', '3'];
+    const rowH = reqCanvas.height / rowLabels.length;
+    reqCtx.clearRect(0, 0, reqCanvas.width, reqCanvas.height);
+    reqCtx.fillStyle = '#f0f0f0';
+    reqCtx.fillRect(0, 0, reqCanvas.width, reqCanvas.height);
+
+    // Vertical grid
+    reqCtx.strokeStyle = '#000';
+    reqCtx.lineWidth = 0.5;
+    for (let i = 0; i <= cols; i++) {
+      const x = Math.round(i * colW);
+      reqCtx.beginPath();
+      reqCtx.moveTo(x, 0);
+      reqCtx.lineTo(x, reqCanvas.height);
+      reqCtx.stroke();
+    }
+
+    // Horizontal grid + row labels
+    for (let r = 0; r < rowLabels.length; r++) {
+      const y = Math.round(r * rowH);
+      reqCtx.strokeStyle = '#000';
+      reqCtx.lineWidth = 0.5;
+      reqCtx.beginPath();
+      reqCtx.moveTo(0, y);
+      reqCtx.lineTo(reqCanvas.width, y);
+      reqCtx.stroke();
+
+      reqCtx.fillStyle = '#333';
+      reqCtx.font = '9px Arial';
+      reqCtx.textAlign = 'left';
+      reqCtx.fillText(rowLabels[r], 2, y + rowH / 2 + 3);
+    }
+  }
+
+  function drawAll() {
+    sizeCanvases();
+    drawDayBar();
+    drawRequestCanvas();
+  }
+
+  drawAll();
+  requestAnimationFrame(() => {
+    canvas.style.opacity = '1';
+    reqCanvas.style.opacity = '1';
+  });
+  window.addEventListener('resize', drawAll);
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const colW = canvas.width / cols;
+    const { month, year } = getMonthYear();
+    const col = Math.floor(x / colW);
+    canvas.title = col < daysInMonth(month, year)
+      ? `Tag ${col + 1} (Spalte ${col})`
+      : `Leer (Spalte ${col})`;
+  });
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const colW = canvas.width / cols;
+    const col = Math.floor(x / colW);
+    console.log(`[Mock] Canvas click: x=${Math.round(x)}, y=${Math.round(y)}, col=${col}, canvasWidth=${canvas.width}`);
+  });
+
+  monthSelect.addEventListener('change', () => {
+    drawAll();
+    const { month, year } = getMonthYear();
+    console.log(`[Mock] Month changed: ${month}/${year}`);
+  });
+</script>
+
+</body>
+</html>

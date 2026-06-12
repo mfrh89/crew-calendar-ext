@@ -38,7 +38,7 @@ async function setupAlarm(): Promise<void> {
 
 async function testICS(url: string) {
   try {
-    const events = await fetchICSEvents(url, '#4285f4');
+    const events = await fetchICSEvents(url, '#4285f4', 'Test');
     return { success: true, eventCount: events.length };
   } catch (e) {
     return { success: false, error: String(e) };
@@ -58,7 +58,7 @@ async function syncAll(): Promise<void> {
 
     const allEvents = [];
     for (const source of settings.calendarSources) {
-      const events = await fetchICSEvents(source.url, source.color);
+      const events = await fetchICSEvents(source.url, source.color, source.name);
       allEvents.push(...events);
     }
 

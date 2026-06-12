@@ -17,6 +17,29 @@ const saveBtn = $<HTMLButtonElement>('save');
 const saveStatusEl = $<HTMLSpanElement>('saveStatus');
 
 let calendarSources: CalendarSource[] = [];
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+async function save() {
+  const current = await settingsStorage.getValue();
+  await settingsStorage.setValue({
+    enabled: current.enabled,
+    calendarSources,
+    targetUrl: targetUrlInput.value.trim(),
+    syncIntervalMinutes: parseInt(syncIntervalSelect.value, 10),
+    stripPosition: stripPositionSelect.value as 'above' | 'below',
+  });
+
+  await browser.runtime.sendMessage({ type: 'SYNC_NOW' });
+
+  saveStatusEl.textContent = 'Saved!';
+  setTimeout(() => { saveStatusEl.textContent = ''; }, 2000);
+}
+
+function scheduleSave() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveStatusEl.textContent = '...';
+  saveTimeout = setTimeout(save, 800);
+}
 
 async function init() {
   const settings = await settingsStorage.getValue();
@@ -34,13 +57,23 @@ function renderCalendars() {
     const item = document.createElement('div');
     item.className = 'cal-item';
 
-    const dot = document.createElement('div');
-    dot.className = 'cal-color';
-    dot.style.background = src.color;
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'cal-color-input';
+    colorInput.value = src.color;
+    colorInput.addEventListener('input', () => {
+      calendarSources[i].color = colorInput.value;
+      scheduleSave();
+    });
 
-    const name = document.createElement('span');
-    name.className = 'cal-name';
-    name.textContent = src.name || 'Calendar';
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'cal-name-input';
+    nameInput.value = src.name || 'Calendar';
+    nameInput.addEventListener('input', () => {
+      calendarSources[i].name = nameInput.value;
+      scheduleSave();
+    });
 
     const url = document.createElement('span');
     url.className = 'cal-url';
@@ -52,9 +85,10 @@ function renderCalendars() {
     removeBtn.addEventListener('click', () => {
       calendarSources.splice(i, 1);
       renderCalendars();
+      scheduleSave();
     });
 
-    item.append(dot, name, url, removeBtn);
+    item.append(colorInput, nameInput, url, removeBtn);
     calendarListEl.appendChild(item);
   }
 }
@@ -111,20 +145,16 @@ addCalBtn.addEventListener('click', async () => {
   newCalNameInput.value = '';
   testStatusEl.hidden = true;
   renderCalendars();
+  scheduleSave();
 });
 
-saveBtn.addEventListener('click', async () => {
-  await settingsStorage.setValue({
-    calendarSources,
-    targetUrl: targetUrlInput.value.trim(),
-    syncIntervalMinutes: parseInt(syncIntervalSelect.value, 10),
-    stripPosition: stripPositionSelect.value as 'above' | 'below',
-  });
+targetUrlInput.addEventListener('input', scheduleSave);
+stripPositionSelect.addEventListener('change', scheduleSave);
+syncIntervalSelect.addEventListener('change', scheduleSave);
 
-  await browser.runtime.sendMessage({ type: 'SYNC_NOW' });
-
-  saveStatusEl.textContent = 'Saved!';
-  setTimeout(() => { saveStatusEl.textContent = ''; }, 2000);
+saveBtn.addEventListener('click', () => {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  save();
 });
 
 function showStatus(el: HTMLElement, message: string, type: 'success' | 'error') {

@@ -5,6 +5,7 @@ export function parseICS(
   icsData: string,
   sourceUrl: string,
   color: string,
+  sourceName: string,
 ): CalendarEvent[] {
   const jcalData = ICAL.parse(icsData);
   const comp = new ICAL.Component(jcalData);
@@ -23,6 +24,7 @@ export function parseICS(
         location: event.location || undefined,
         description: event.description || undefined,
         sourceUrl,
+        sourceName,
         color,
         isAllDay: event.startDate.isDate,
       });

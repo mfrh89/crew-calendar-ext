@@ -6,9 +6,11 @@ const statusText = document.getElementById('statusText')!;
 const lastSyncEl = document.getElementById('lastSync')!;
 const syncNowBtn = document.getElementById('syncNow') as HTMLButtonElement;
 const openOptionsBtn = document.getElementById('openOptions')!;
+const enableToggle = document.getElementById('enableToggle') as HTMLInputElement;
 
 async function render() {
   const settings = await settingsStorage.getValue();
+  enableToggle.checked = settings.enabled;
 
   if (settings.calendarSources.length === 0) {
     statusIcon.className = 'icon unconfigured';
@@ -19,7 +21,14 @@ async function render() {
   }
 
   const state = await syncStateStorage.getValue();
-  statusIcon.className = `icon ${state.status}`;
+  statusIcon.className = `icon ${settings.enabled ? state.status : 'unconfigured'}`;
+
+  if (!settings.enabled) {
+    statusText.textContent = 'Disabled';
+    lastSyncEl.textContent = '';
+    syncNowBtn.disabled = true;
+    return;
+  }
 
   switch (state.status) {
     case 'idle':
@@ -44,6 +53,12 @@ async function render() {
 
   syncNowBtn.disabled = state.status === 'syncing';
 }
+
+enableToggle.addEventListener('change', async () => {
+  const settings = await settingsStorage.getValue();
+  await settingsStorage.setValue({ ...settings, enabled: enableToggle.checked });
+  await render();
+});
 
 syncNowBtn.addEventListener('click', async () => {
   syncNowBtn.disabled = true;
