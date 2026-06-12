@@ -2,6 +2,8 @@ import type { DayBarInfo } from '../types';
 
 const CANVAS_ID = 'calendarAndRosterLine';
 const CONTAINER_ID = 'calendarAndRosterLineContainer';
+const MONTH_SELECT_ID = 'sel_month';
+const TOTAL_COLUMNS = 32;
 
 export function detectDayBar(): DayBarInfo | null {
   const canvas = document.getElementById(CANVAS_ID) as HTMLCanvasElement | null;
@@ -15,16 +17,15 @@ export function detectDayBar(): DayBarInfo | null {
 
   const { month, year } = readMonthYear();
   const daysInMonth = new Date(year, month, 0).getDate();
-  const totalColumns = calculateTotalColumns(year, month, daysInMonth);
   const canvasWidth = canvas.offsetWidth || canvas.width;
-  const columnWidth = canvasWidth / totalColumns;
+  const columnWidth = canvasWidth / TOTAL_COLUMNS;
 
-  console.log('[CrewCal] Detected:', { month, year, daysInMonth, totalColumns, canvasWidth, columnWidth });
+  console.log('[CrewCal] Detected:', { month, year, daysInMonth, canvasWidth, columnWidth });
 
   return {
     anchorElement: container,
     canvasWidth,
-    totalColumns,
+    totalColumns: TOTAL_COLUMNS,
     columnWidth,
     daysInMonth,
     month,
@@ -32,36 +33,37 @@ export function detectDayBar(): DayBarInfo | null {
   };
 }
 
+export function watchMonthSelect(onChange: () => void): void {
+  const sel = document.getElementById(MONTH_SELECT_ID);
+  if (sel) {
+    sel.addEventListener('change', () => {
+      console.log('[CrewCal] Month select changed');
+      setTimeout(onChange, 500);
+    });
+  }
+}
+
 function readMonthYear(): { month: number; year: number } {
   const now = new Date();
-  let month = now.getMonth() + 1;
-  let year = now.getFullYear();
+
+  const monthSelect = document.getElementById(MONTH_SELECT_ID) as HTMLSelectElement | null;
+  if (monthSelect) {
+    const text = monthSelect.options?.[monthSelect.selectedIndex]?.text
+                 ?? monthSelect.value ?? '';
+    console.log('[CrewCal] Month select text:', text);
+    const parsed = parseMonthFromText(text);
+    if (parsed) return parsed;
+  }
 
   const selects = document.querySelectorAll('select');
   for (const sel of selects) {
-    const text = sel.value || sel.options?.[sel.selectedIndex]?.text || '';
+    if (sel.id === MONTH_SELECT_ID) continue;
+    const text = sel.options?.[sel.selectedIndex]?.text ?? sel.value ?? '';
     const parsed = parseMonthFromText(text);
-    if (parsed) {
-      month = parsed.month;
-      year = parsed.year;
-      break;
-    }
+    if (parsed) return parsed;
   }
 
-  return { month, year };
-}
-
-function calculateTotalColumns(year: number, month: number, daysInMonth: number): number {
-  const lastDay = new Date(year, month - 1, daysInMonth);
-  const lastDayWeekday = lastDay.getDay();
-  // Monday-based: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
-  const lastDayMondayBased = lastDayWeekday === 0 ? 6 : lastDayWeekday - 1;
-
-  // The display shows overflow days to complete the partial week through Thursday
-  if (lastDayMondayBased >= 3) {
-    return daysInMonth;
-  }
-  return daysInMonth + (3 - lastDayMondayBased);
+  return { month: now.getMonth() + 1, year: now.getFullYear() };
 }
 
 const MONTH_NAMES: Record<string, number> = {

@@ -5,7 +5,8 @@ export async function fetchICSEvents(
   url: string,
   color: string,
 ): Promise<CalendarEvent[]> {
-  const response = await fetch(url);
+  const fetchUrl = url.replace(/^webcal:\/\//, 'https://');
+  const response = await fetch(fetchUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch calendar: ${response.status} ${response.statusText}`);
   }

@@ -1,6 +1,7 @@
 import type { DayBarInfo, CalendarEvent } from '../types';
 
 const STRIP_ID = 'crew-calendar-strip';
+const TOUCH_HEIGHT = 44;
 
 export function injectStrip(
   dayBar: DayBarInfo,
@@ -10,8 +11,14 @@ export function injectStrip(
 ): HTMLElement {
   removeStrip();
 
+  const tr = document.createElement('tr');
+  tr.id = STRIP_ID;
+
+  const td = document.createElement('td');
+  td.setAttribute('colspan', '3');
+  td.style.cssText = 'padding: 0; border: none;';
+
   const strip = document.createElement('div');
-  strip.id = STRIP_ID;
   strip.style.cssText = `
     display: flex;
     width: ${dayBar.canvasWidth}px;
@@ -30,13 +37,12 @@ export function injectStrip(
     const cell = document.createElement('div');
     cell.style.cssText = `
       width: ${dayBar.columnWidth}px;
-      min-height: 22px;
+      height: ${TOUCH_HEIGHT}px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 1px;
-      padding: 2px 0;
+      gap: 2px;
       box-sizing: border-box;
       border-right: 1px solid #ddd;
       background: ${isWeekend ? '#e0e0e0' : '#f0f0f0'};
@@ -50,8 +56,8 @@ export function injectStrip(
       for (const ev of visible) {
         const dot = document.createElement('div');
         dot.style.cssText = `
-          width: 8px;
-          height: 8px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
           background: ${ev.color};
           cursor: pointer;
@@ -67,7 +73,7 @@ export function injectStrip(
 
       if (dayEvents.length > maxDots) {
         const overflow = document.createElement('div');
-        overflow.style.cssText = 'font-size: 8px; color: #666; cursor: pointer;';
+        overflow.style.cssText = 'font-size: 9px; color: #666; cursor: pointer; line-height: 1;';
         overflow.textContent = `+${dayEvents.length - maxDots}`;
         overflow.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -80,19 +86,21 @@ export function injectStrip(
     strip.appendChild(cell);
   }
 
-  // Insert relative to the canvas container
+  td.appendChild(strip);
+  tr.appendChild(td);
+
   const anchor = dayBar.anchorElement;
   const parentRow = anchor.closest('tr');
   const insertTarget = parentRow ?? anchor;
 
   if (position === 'above') {
-    insertTarget.parentNode?.insertBefore(strip, insertTarget);
+    insertTarget.parentNode?.insertBefore(tr, insertTarget);
   } else {
-    insertTarget.parentNode?.insertBefore(strip, insertTarget.nextSibling);
+    insertTarget.parentNode?.insertBefore(tr, insertTarget.nextSibling);
   }
 
-  console.log('[CrewCal] Strip injected with', dayBar.daysInMonth, 'cells');
-  return strip;
+  console.log('[CrewCal] Strip injected with', dayBar.daysInMonth, 'day cells,', TOUCH_HEIGHT + 'px height');
+  return tr;
 }
 
 export function removeStrip(): void {
@@ -113,15 +121,17 @@ function groupEventsByDay(
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0, 23, 59, 59);
 
+    if (start > monthEnd || end < monthStart) continue;
+
     const effectiveStart = start < monthStart ? monthStart : start;
     const effectiveEnd = end > monthEnd ? monthEnd : end;
 
     const startDay = effectiveStart.getDate();
     const endDay = event.isAllDay
-      ? new Date(effectiveEnd.getTime() - 1).getDate()
+      ? new Date(effectiveEnd.getTime() - 86400000).getDate() || effectiveEnd.getDate()
       : effectiveEnd.getDate();
 
-    for (let d = startDay; d <= endDay; d++) {
+    for (let d = startDay; d <= endDay && d <= new Date(year, month, 0).getDate(); d++) {
       if (!map.has(d)) map.set(d, []);
       map.get(d)!.push(event);
     }

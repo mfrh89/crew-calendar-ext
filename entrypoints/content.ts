@@ -1,4 +1,4 @@
-import { detectDayBar } from '@/lib/dom/detector';
+import { detectDayBar, watchMonthSelect } from '@/lib/dom/detector';
 import { injectStrip, removeStrip } from '@/lib/dom/injector';
 import { observeDOMChanges } from '@/lib/dom/observer';
 import { loadEvents } from '@/lib/storage/events';
@@ -42,7 +42,7 @@ export default defineContentScript({
 
       currentDayBar = dayBar;
       const events = await loadEvents(dayBar.year, dayBar.month);
-      console.log('[CrewCal] Events for', dayBar.month, '/', dayBar.year, ':', events.length);
+      console.log('[CrewCal] Rendering', events.length, 'events for', dayBar.month + '/' + dayBar.year);
       injectStrip(dayBar, events, settings.stripPosition, showEventModal);
     }
 
@@ -125,12 +125,12 @@ export default defineContentScript({
     });
 
     browser.storage.onChanged.addListener((changes) => {
-      if (!currentDayBar) return;
-      const key = `events_${currentDayBar.year}-${String(currentDayBar.month).padStart(2, '0')}`;
-      if (changes[key]) render();
+      const monthKeys = Object.keys(changes).filter((k) => k.startsWith('events_'));
+      if (monthKeys.length > 0) render();
     });
 
     await render();
+    watchMonthSelect(() => render());
     observeDOMChanges(() => render());
   },
 });
@@ -138,7 +138,6 @@ export default defineContentScript({
 function matchesTarget(url: string, pattern: string): boolean {
   if (!pattern) return false;
 
-  // Strip protocol for comparison so "cra.example.com/*" matches "https://cra.example.com/..."
   const strip = (u: string) => u.replace(/^https?:\/\//, '');
   const normalizedUrl = strip(url);
   const normalizedPattern = strip(pattern);

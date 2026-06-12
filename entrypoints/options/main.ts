@@ -61,7 +61,8 @@ function renderCalendars() {
 
 async function requestHostPermission(url: string): Promise<boolean> {
   try {
-    const origin = new URL(url).origin + '/*';
+    const httpsUrl = url.replace(/^webcal:\/\//, 'https://');
+    const origin = new URL(httpsUrl).origin + '/*';
     return await browser.permissions.request({ origins: [origin] });
   } catch {
     return false;
