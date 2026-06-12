@@ -1,5 +1,4 @@
-import type { DayBarInfo } from './detector';
-import type { CalendarEvent } from '../types';
+import type { DayBarInfo, CalendarEvent } from '../types';
 
 const STRIP_ID = 'crew-calendar-strip';
 
@@ -11,38 +10,40 @@ export function injectStrip(
 ): HTMLElement {
   removeStrip();
 
-  const strip = document.createElement('tr');
+  const strip = document.createElement('div');
   strip.id = STRIP_ID;
-  strip.style.cssText = 'background: #f8f9fa; border-top: 2px solid #cc0000;';
+  strip.style.cssText = `
+    display: flex;
+    width: ${dayBar.canvasWidth}px;
+    background: #f0f0f0;
+    border-top: 2px solid #cc0000;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+  `;
 
   const eventsByDay = groupEventsByDay(events, dayBar.year, dayBar.month);
 
-  for (let i = 0; i < dayBar.cells.length; i++) {
-    const cell = dayBar.cells[i];
-    const dayNum = i + 1;
+  for (let dayNum = 1; dayNum <= dayBar.daysInMonth; dayNum++) {
     const dayEvents = eventsByDay.get(dayNum) ?? [];
+    const isWeekend = isWeekendDay(dayBar.year, dayBar.month, dayNum);
 
-    const td = document.createElement('td');
-    td.style.cssText = `
-      padding: 2px;
-      vertical-align: top;
-      text-align: center;
-      font-size: 10px;
-      min-height: 24px;
-      position: relative;
+    const cell = document.createElement('div');
+    cell.style.cssText = `
+      width: ${dayBar.columnWidth}px;
+      min-height: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      padding: 2px 0;
+      box-sizing: border-box;
       border-right: 1px solid #ddd;
+      background: ${isWeekend ? '#e0e0e0' : '#f0f0f0'};
+      flex-shrink: 0;
     `;
 
-    const isWeekend = cell.style.backgroundColor || cell.classList.toString().includes('weekend');
-    if (isWeekend || isWeekendDay(dayBar.year, dayBar.month, dayNum)) {
-      td.style.backgroundColor = '#eee';
-    }
-
     if (dayEvents.length > 0) {
-      const dotsContainer = document.createElement('div');
-      dotsContainer.style.cssText =
-        'display: flex; flex-direction: column; align-items: center; gap: 1px;';
-
       const maxDots = 3;
       const visible = dayEvents.slice(0, maxDots);
 
@@ -61,36 +62,36 @@ export function injectStrip(
           e.stopPropagation();
           onEventClick(ev);
         });
-        dotsContainer.appendChild(dot);
+        cell.appendChild(dot);
       }
 
       if (dayEvents.length > maxDots) {
         const overflow = document.createElement('div');
-        overflow.style.cssText =
-          'font-size: 8px; color: #666; cursor: pointer;';
+        overflow.style.cssText = 'font-size: 8px; color: #666; cursor: pointer;';
         overflow.textContent = `+${dayEvents.length - maxDots}`;
         overflow.addEventListener('click', (e) => {
           e.stopPropagation();
           onEventClick(dayEvents[0]);
         });
-        dotsContainer.appendChild(overflow);
+        cell.appendChild(overflow);
       }
-
-      td.appendChild(dotsContainer);
     }
 
-    strip.appendChild(td);
+    strip.appendChild(cell);
   }
+
+  // Insert relative to the canvas container
+  const anchor = dayBar.anchorElement;
+  const parentRow = anchor.closest('tr');
+  const insertTarget = parentRow ?? anchor;
 
   if (position === 'above') {
-    dayBar.container.parentNode?.insertBefore(strip, dayBar.container);
+    insertTarget.parentNode?.insertBefore(strip, insertTarget);
   } else {
-    dayBar.container.parentNode?.insertBefore(
-      strip,
-      dayBar.container.nextSibling,
-    );
+    insertTarget.parentNode?.insertBefore(strip, insertTarget.nextSibling);
   }
 
+  console.log('[CrewCal] Strip injected with', dayBar.daysInMonth, 'cells');
   return strip;
 }
 

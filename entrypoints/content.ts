@@ -1,9 +1,9 @@
-import { detectDayBar, type DayBarInfo } from '@/lib/dom/detector';
+import { detectDayBar } from '@/lib/dom/detector';
 import { injectStrip, removeStrip } from '@/lib/dom/injector';
 import { observeDOMChanges } from '@/lib/dom/observer';
 import { loadEvents } from '@/lib/storage/events';
 import { settingsStorage } from '@/lib/storage/settings';
-import type { CalendarEvent, Settings } from '@/lib/types';
+import type { CalendarEvent, DayBarInfo } from '@/lib/types';
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -11,15 +11,29 @@ export default defineContentScript({
 
   async main() {
     const settings = await settingsStorage.getValue();
-    if (!settings.targetUrl || !matchesTarget(window.location.href, settings.targetUrl)) {
+
+    console.log('[CrewCal] Content script loaded', {
+      currentUrl: window.location.href,
+      targetUrl: settings.targetUrl,
+    });
+
+    if (!settings.targetUrl) {
+      console.log('[CrewCal] No target URL configured, skipping.');
       return;
     }
+
+    if (!matchesTarget(window.location.href, settings.targetUrl)) {
+      console.log('[CrewCal] URL does not match target pattern, skipping.');
+      return;
+    }
+
+    console.log('[CrewCal] URL matched, looking for canvas day bar...');
 
     let currentDayBar: DayBarInfo | null = null;
     let modal: HTMLElement | null = null;
 
     async function render() {
-      const dayBar = detectDayBar(settings.customSelector);
+      const dayBar = detectDayBar();
       if (!dayBar) {
         removeStrip();
         currentDayBar = null;
@@ -28,6 +42,7 @@ export default defineContentScript({
 
       currentDayBar = dayBar;
       const events = await loadEvents(dayBar.year, dayBar.month);
+      console.log('[CrewCal] Events for', dayBar.month, '/', dayBar.year, ':', events.length);
       injectStrip(dayBar, events, settings.stripPosition, showEventModal);
     }
 
@@ -68,14 +83,14 @@ export default defineContentScript({
       const endDate = new Date(event.dtend);
 
       if (event.isAllDay) {
-        details.appendChild(detailRow('Date', formatDate(startDate)));
+        details.appendChild(detailRow('Datum', formatDate(startDate)));
       } else {
-        details.appendChild(detailRow('Date', formatDate(startDate)));
-        details.appendChild(detailRow('Time', `${formatTime(startDate)} - ${formatTime(endDate)}`));
+        details.appendChild(detailRow('Datum', formatDate(startDate)));
+        details.appendChild(detailRow('Zeit', `${formatTime(startDate)} - ${formatTime(endDate)}`));
       }
 
       if (event.location) {
-        details.appendChild(detailRow('Location', event.location));
+        details.appendChild(detailRow('Ort', event.location));
       }
 
       if (event.description) {
@@ -86,7 +101,7 @@ export default defineContentScript({
       }
 
       const closeBtn = document.createElement('button');
-      closeBtn.textContent = 'Close';
+      closeBtn.textContent = 'Schließen';
       closeBtn.style.cssText = `
         margin-top: 16px; padding: 8px 20px; border: none; border-radius: 4px;
         background: #f0f0f0; color: #333; cursor: pointer; font-size: 14px;
@@ -121,14 +136,18 @@ export default defineContentScript({
 });
 
 function matchesTarget(url: string, pattern: string): boolean {
-  try {
-    const escaped = pattern
-      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-      .replace(/\*/g, '.*');
-    return new RegExp(`^${escaped}$`).test(url);
-  } catch {
-    return url.startsWith(pattern.replace(/\*/g, ''));
-  }
+  if (!pattern) return false;
+
+  // Strip protocol for comparison so "cra.example.com/*" matches "https://cra.example.com/..."
+  const strip = (u: string) => u.replace(/^https?:\/\//, '');
+  const normalizedUrl = strip(url);
+  const normalizedPattern = strip(pattern);
+
+  const escaped = normalizedPattern
+    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '.*');
+
+  return new RegExp(escaped).test(normalizedUrl);
 }
 
 function detailRow(label: string, value: string): HTMLElement {

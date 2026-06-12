@@ -1,114 +1,67 @@
-const DAY_PATTERN = /^(Mo|Di|Mi|Do|Fr|Sa|So)\s*(\d{1,2})$/;
-const KNOWN_IDS = ['calenderAndRosterLine'];
+import type { DayBarInfo } from '../types';
 
-export interface DayBarInfo {
-  container: HTMLElement;
-  cells: HTMLElement[];
-  month: number;
-  year: number;
+const CANVAS_ID = 'calendarAndRosterLine';
+const CONTAINER_ID = 'calendarAndRosterLineContainer';
+
+export function detectDayBar(): DayBarInfo | null {
+  const canvas = document.getElementById(CANVAS_ID) as HTMLCanvasElement | null;
+  if (!canvas) {
+    console.log('[CrewCal] Canvas #calendarAndRosterLine not found');
+    return null;
+  }
+
+  const container = document.getElementById(CONTAINER_ID) ?? canvas.parentElement;
+  if (!container) return null;
+
+  const { month, year } = readMonthYear();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const totalColumns = calculateTotalColumns(year, month, daysInMonth);
+  const canvasWidth = canvas.offsetWidth || canvas.width;
+  const columnWidth = canvasWidth / totalColumns;
+
+  console.log('[CrewCal] Detected:', { month, year, daysInMonth, totalColumns, canvasWidth, columnWidth });
+
+  return {
+    anchorElement: container,
+    canvasWidth,
+    totalColumns,
+    columnWidth,
+    daysInMonth,
+    month,
+    year,
+  };
 }
 
-export function detectDayBar(customSelector?: string): DayBarInfo | null {
-  if (customSelector) {
-    const el = document.querySelector<HTMLElement>(customSelector);
-    if (el) {
-      const cells = findDayCells(el);
-      if (cells) return buildDayBarInfo(el, cells);
-    }
-  }
+function readMonthYear(): { month: number; year: number } {
+  const now = new Date();
+  let month = now.getMonth() + 1;
+  let year = now.getFullYear();
 
-  for (const id of KNOWN_IDS) {
-    const el = document.getElementById(id);
-    if (el) {
-      const cells = findDayCells(el);
-      if (cells) return buildDayBarInfo(el, cells);
-    }
-  }
-
-  return detectAutomatically();
-}
-
-function detectAutomatically(): DayBarInfo | null {
-  const candidates = [
-    ...document.querySelectorAll<HTMLElement>('tr'),
-    ...document.querySelectorAll<HTMLElement>('[class*="row"], [class*="bar"], [class*="day"]'),
-  ];
-
-  for (const candidate of candidates) {
-    const cells = findDayCells(candidate);
-    if (cells) return buildDayBarInfo(candidate, cells);
-  }
-
-  return null;
-}
-
-function findDayCells(container: HTMLElement): HTMLElement[] | null {
-  const children = Array.from(container.querySelectorAll<HTMLElement>('td, th, div > div, span'));
-  if (children.length < 28) {
-    const directChildren = Array.from(container.children) as HTMLElement[];
-    if (directChildren.length >= 28) {
-      return matchDayCells(directChildren);
-    }
-    return matchDayCells(children);
-  }
-  return matchDayCells(children);
-}
-
-function matchDayCells(elements: HTMLElement[]): HTMLElement[] | null {
-  const matched: { el: HTMLElement; day: number }[] = [];
-
-  for (const child of elements) {
-    const text = (child.textContent ?? '').trim().replace(/\s+/g, ' ');
-    const match = DAY_PATTERN.exec(text);
-    if (match) {
-      matched.push({ el: child, day: parseInt(match[2], 10) });
-    }
-  }
-
-  if (matched.length < 28) return null;
-
-  matched.sort((a, b) => a.day - b.day);
-  if (matched[0].day !== 1) return null;
-
-  for (let i = 1; i < matched.length; i++) {
-    if (matched[i].day !== matched[i - 1].day + 1) return null;
-  }
-
-  return matched.map((m) => m.el);
-}
-
-function buildDayBarInfo(
-  container: HTMLElement,
-  cells: HTMLElement[],
-): DayBarInfo {
-  const daysInMonth = cells.length;
-
-  let year = new Date().getFullYear();
-  let month = new Date().getMonth() + 1;
-
-  const monthSelect = document.querySelector<HTMLSelectElement>(
-    'select[name*="monat" i], select[name*="month" i], select',
-  );
-
-  if (monthSelect) {
-    const val = monthSelect.value || monthSelect.textContent || '';
-    const parsed = parseMonthFromText(val);
+  const selects = document.querySelectorAll('select');
+  for (const sel of selects) {
+    const text = sel.value || sel.options?.[sel.selectedIndex]?.text || '';
+    const parsed = parseMonthFromText(text);
     if (parsed) {
       month = parsed.month;
       year = parsed.year;
-    }
-  } else {
-    const pageText = document.body.textContent ?? '';
-    const parsed = parseMonthFromText(pageText);
-    if (parsed) {
-      month = parsed.month;
-      year = parsed.year;
-    } else {
-      month = guessMonthFromDayCount(daysInMonth, year);
+      break;
     }
   }
 
-  return { container, cells, month, year };
+  return { month, year };
+}
+
+function calculateTotalColumns(year: number, month: number, daysInMonth: number): number {
+  const lastDay = new Date(year, month - 1, daysInMonth);
+  const lastDayWeekday = lastDay.getDay();
+  // Monday-based: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
+  const lastDayMondayBased = lastDayWeekday === 0 ? 6 : lastDayWeekday - 1;
+
+  // The display shows overflow days to complete the partial week through Thursday
+  if (lastDayMondayBased >= 3) {
+    return daysInMonth;
+  }
+  return daysInMonth + (3 - lastDayMondayBased);
 }
 
 const MONTH_NAMES: Record<string, number> = {
@@ -118,11 +71,8 @@ const MONTH_NAMES: Record<string, number> = {
   july: 7, october: 10, december: 12,
 };
 
-function parseMonthFromText(
-  text: string,
-): { month: number; year: number } | null {
-  const lower = text.toLowerCase();
-
+function parseMonthFromText(text: string): { month: number; year: number } | null {
+  const lower = text.toLowerCase().trim();
   for (const [name, num] of Object.entries(MONTH_NAMES)) {
     if (lower.includes(name)) {
       const yearMatch = /\d{4}/.exec(text);
@@ -132,16 +82,5 @@ function parseMonthFromText(
       };
     }
   }
-
   return null;
-}
-
-function guessMonthFromDayCount(days: number, year: number): number {
-  const now = new Date();
-  for (let offset = -1; offset <= 1; offset++) {
-    const m = now.getMonth() + 1 + offset;
-    const daysInMonth = new Date(year, m, 0).getDate();
-    if (daysInMonth === days) return m;
-  }
-  return now.getMonth() + 1;
 }

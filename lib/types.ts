@@ -16,6 +16,16 @@ export interface CalendarEvent {
   isAllDay: boolean;
 }
 
+export interface DayBarInfo {
+  anchorElement: HTMLElement;
+  canvasWidth: number;
+  totalColumns: number;
+  columnWidth: number;
+  daysInMonth: number;
+  month: number;
+  year: number;
+}
+
 export interface Settings {
   calendarSources: CalendarSource[];
   targetUrl: string;
