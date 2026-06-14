@@ -18,13 +18,16 @@ export function detectDayBar(): DayBarInfo | null {
   const { month, year } = readMonthYear();
   const daysInMonth = new Date(year, month, 0).getDate();
   const canvasWidth = canvas.offsetWidth || canvas.width;
-  const columnWidth = canvasWidth / TOTAL_COLUMNS;
+  const leftOffset = detectLeftOffset(canvas, TOTAL_COLUMNS);
+  const columnWidth = (canvasWidth - leftOffset) / TOTAL_COLUMNS;
 
-  console.log('[CrewCal] Detected:', { month, year, daysInMonth, canvasWidth, columnWidth });
+  console.log('[CrewCal] Detected:', { month, year, daysInMonth, canvasWidth, leftOffset, columnWidth });
 
   return {
     anchorElement: container,
+    canvasElement: canvas,
     canvasWidth,
+    leftOffset,
     totalColumns: TOTAL_COLUMNS,
     columnWidth,
     daysInMonth,
@@ -72,6 +75,84 @@ const MONTH_NAMES: Record<string, number> = {
   january: 1, february: 2, march: 3, may: 5, june: 6,
   july: 7, october: 10, december: 12,
 };
+
+let cachedLeftOffset: { offset: number; canvasW: number; canvasH: number } | null = null;
+
+function detectLeftOffset(canvas: HTMLCanvasElement, totalColumns: number): number {
+  const w = canvas.width;
+  const h = canvas.height;
+
+  if (cachedLeftOffset && cachedLeftOffset.canvasW === w && cachedLeftOffset.canvasH === h) {
+    console.log('[CrewCal] Using cached left offset:', cachedLeftOffset.offset, 'px');
+    return cachedLeftOffset.offset;
+  }
+
+  let ctx: CanvasRenderingContext2D | null;
+  try {
+    ctx = canvas.getContext('2d');
+  } catch {
+    return 0;
+  }
+  if (!ctx) return 0;
+
+  if (w === 0 || h === 0) return 0;
+
+  const startY = Math.floor(h * 0.35);
+  const scanHeight = h - startY;
+  if (scanHeight < 3) return 0;
+
+  let imageData: ImageData;
+  try {
+    imageData = ctx.getImageData(0, startY, w, scanHeight);
+  } catch {
+    return 0;
+  }
+  const data = imageData.data;
+
+  const darkRatio = new Float32Array(w);
+  for (let x = 0; x < w; x++) {
+    let darkCount = 0;
+    for (let row = 0; row < scanHeight; row++) {
+      const idx = (row * w + x) * 4;
+      const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+      if (brightness < 100) darkCount++;
+    }
+    darkRatio[x] = darkCount / scanHeight;
+  }
+
+  let bestOffset = 0;
+  let bestScore = -1;
+
+  for (let offset = 0; offset <= 60; offset++) {
+    const colWidth = (w - offset) / totalColumns;
+    if (colWidth < 15 || colWidth > 40) continue;
+
+    let score = 0;
+    for (let i = 0; i <= totalColumns; i++) {
+      const x = Math.round(offset + i * colWidth);
+      let maxRatio = 0;
+      for (let dx = -1; dx <= 1; dx++) {
+        const xx = x + dx;
+        if (xx >= 0 && xx < w) maxRatio = Math.max(maxRatio, darkRatio[xx]);
+      }
+      score += maxRatio;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestOffset = offset;
+    }
+  }
+
+  const displayWidth = canvas.offsetWidth;
+  if (displayWidth && displayWidth !== w) {
+    bestOffset = Math.round(bestOffset * displayWidth / w);
+  }
+
+  cachedLeftOffset = { offset: bestOffset, canvasW: w, canvasH: h };
+  console.log('[CrewCal] Detected left offset:', bestOffset, 'px (canvas:', w, 'x', h, ', display:', displayWidth, ')');
+  return bestOffset;
+}
 
 function parseMonthFromText(text: string): { month: number; year: number } | null {
   const lower = text.toLowerCase().trim();

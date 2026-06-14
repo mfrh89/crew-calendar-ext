@@ -57,18 +57,28 @@ async function syncAll(): Promise<void> {
     const month = now.getMonth() + 1;
 
     const allEvents = [];
+    const errors: string[] = [];
     for (const source of settings.calendarSources) {
-      const events = await fetchICSEvents(source.url, source.color, source.name);
-      allEvents.push(...events);
+      try {
+        const events = await fetchICSEvents(source.url, source.color, source.name);
+        allEvents.push(...events);
+      } catch (e) {
+        console.warn('[CrewCal] Sync failed for', source.name, e);
+        errors.push(e instanceof Error ? e.message : String(e));
+      }
     }
 
-    const monthsToStore = [
-      { y: month === 1 ? year - 1 : year, m: month === 1 ? 12 : month - 1 },
-      { y: year, m: month },
-      { y: month === 12 ? year + 1 : year, m: month === 12 ? 1 : month + 1 },
-    ];
+    const monthKeys = new Set<string>();
+    for (const ev of allEvents) {
+      const start = new Date(ev.dtstart);
+      const end = new Date(ev.dtend);
+      for (let d = new Date(start.getFullYear(), start.getMonth(), 1); d <= end; d.setMonth(d.getMonth() + 1)) {
+        monthKeys.add(`${d.getFullYear()}-${d.getMonth() + 1}`);
+      }
+    }
 
-    for (const { y, m } of monthsToStore) {
+    for (const key of monthKeys) {
+      const [y, m] = key.split('-').map(Number);
       const monthStart = new Date(y, m - 1, 1);
       const monthEnd = new Date(y, m, 0, 23, 59, 59);
 
@@ -82,15 +92,25 @@ async function syncAll(): Promise<void> {
     }
 
     await clearOldEvents(year, month);
-    await syncStateStorage.setValue({
-      lastSync: new Date().toISOString(),
-      status: 'idle',
-    });
+
+    if (errors.length > 0 && allEvents.length === 0) {
+      await syncStateStorage.setValue({
+        lastSync: null,
+        status: 'error',
+        error: errors.join(' | '),
+      });
+    } else {
+      await syncStateStorage.setValue({
+        lastSync: new Date().toISOString(),
+        status: errors.length > 0 ? 'error' : 'idle',
+        error: errors.length > 0 ? errors.join(' | ') : undefined,
+      });
+    }
   } catch (e) {
     await syncStateStorage.setValue({
       lastSync: null,
       status: 'error',
-      error: String(e),
+      error: e instanceof Error ? e.message : String(e),
     });
   }
 }

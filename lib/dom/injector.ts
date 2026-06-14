@@ -7,8 +7,10 @@ const MAX_DOTS = 3;
 const DOT_SIZE = 10;
 const DOT_OVERLAP = -3;
 
-export function injectBanner(container: HTMLElement): void {
+export function injectBanner(dayBar: DayBarInfo): void {
   document.getElementById(BANNER_ID)?.remove();
+
+  const canvas = dayBar.canvasElement;
 
   const banner = document.createElement('div');
   banner.id = BANNER_ID;
@@ -23,12 +25,7 @@ export function injectBanner(container: HTMLElement): void {
   `;
   banner.innerHTML = '<strong style="color:#333;">Crew Calendar</strong> Personal calendar overlay — colored dots show your private events. Click for details.';
 
-  const canvas = container.querySelector('canvas');
-  if (canvas) {
-    container.insertBefore(banner, canvas);
-  } else {
-    container.prepend(banner);
-  }
+  canvas.parentNode!.insertBefore(banner, canvas);
 }
 
 export function removeBanner(): void {
@@ -44,15 +41,16 @@ export function injectStrip(
 ): HTMLElement {
   removeStrip();
 
-  const container = dayBar.anchorElement;
-  const canvas = container.querySelector('canvas');
+  const canvas = dayBar.canvasElement;
 
   const strip = document.createElement('div');
   strip.id = STRIP_ID;
   strip.style.cssText = `
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(${dayBar.totalColumns}, 1fr);
     width: ${dayBar.canvasWidth}px;
-    background: #f0f0f0;
+    padding-left: ${dayBar.leftOffset}px;
+    background: linear-gradient(to right, #ddd ${dayBar.leftOffset}px, #f0f0f0 ${dayBar.leftOffset}px);
     border-bottom: 2px solid #cc0000;
     font-family: Arial, sans-serif;
     box-sizing: border-box;
@@ -60,22 +58,21 @@ export function injectStrip(
 
   const eventsByDay = groupEventsByDay(events, dayBar.year, dayBar.month);
 
-  for (let dayNum = 1; dayNum <= dayBar.daysInMonth; dayNum++) {
-    const dayEvents = eventsByDay.get(dayNum) ?? [];
-    const isWeekend = isWeekendDay(dayBar.year, dayBar.month, dayNum);
+  for (let col = 0; col < dayBar.totalColumns; col++) {
+    const dayNum = col + 1;
+    const inMonth = dayNum <= dayBar.daysInMonth;
+    const dayEvents = inMonth ? (eventsByDay.get(dayNum) ?? []) : [];
+    const isWeekend = inMonth && isWeekendDay(dayBar.year, dayBar.month, dayNum);
 
     const cell = document.createElement('div');
     cell.style.cssText = `
-      width: ${dayBar.columnWidth}px;
       height: ${TOUCH_HEIGHT}px;
       display: flex;
-      flex-direction: row;
       align-items: center;
       justify-content: center;
       box-sizing: border-box;
       border-right: 1px solid #ddd;
       background: ${isWeekend ? '#e0e0e0' : '#f0f0f0'};
-      flex-shrink: 0;
     `;
 
     if (dayEvents.length === 1) {
@@ -130,13 +127,9 @@ export function injectStrip(
     strip.appendChild(cell);
   }
 
-  if (canvas) {
-    container.insertBefore(strip, canvas);
-  } else {
-    container.appendChild(strip);
-  }
+  canvas.parentNode!.insertBefore(strip, canvas);
 
-  console.log('[CrewCal] Strip injected with', dayBar.daysInMonth, 'cells');
+  console.log('[CrewCal] Strip injected with', dayBar.totalColumns, 'columns,', dayBar.daysInMonth, 'active days, parent:', canvas.parentElement?.tagName, canvas.parentElement?.id);
   return strip;
 }
 

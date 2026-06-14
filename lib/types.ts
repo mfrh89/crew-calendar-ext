@@ -19,7 +19,9 @@ export interface CalendarEvent {
 
 export interface DayBarInfo {
   anchorElement: HTMLElement;
+  canvasElement: HTMLCanvasElement;
   canvasWidth: number;
+  leftOffset: number;
   totalColumns: number;
   columnWidth: number;
   daysInMonth: number;

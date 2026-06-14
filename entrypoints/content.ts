@@ -52,7 +52,7 @@ export default defineContentScript({
       }
 
       currentDayBar = dayBar;
-      injectBanner(dayBar.anchorElement);
+      injectBanner(dayBar);
       const events = await loadEvents(dayBar.year, dayBar.month);
       console.log('[CrewCal] Rendering', events.length, 'events for', dayBar.month + '/' + dayBar.year);
       injectStrip(dayBar, events, settings.stripPosition, showEventsModal, showEventsModal);

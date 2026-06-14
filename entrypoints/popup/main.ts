@@ -42,11 +42,11 @@ async function render() {
       break;
   }
 
-  if (state.lastSync) {
+  if (state.error) {
+    lastSyncEl.textContent = state.error;
+  } else if (state.lastSync) {
     const d = new Date(state.lastSync);
     lastSyncEl.textContent = `Last sync: ${d.toLocaleString('de-DE')}`;
-  } else if (state.error) {
-    lastSyncEl.textContent = state.error;
   } else {
     lastSyncEl.textContent = 'Never synced';
   }
