@@ -30,38 +30,69 @@
       </section>
 
       <section>
+        <h2>Public Holidays</h2>
+        <p class="hint">Select one or more German states. Holidays appear as a colored border around the day cell.</p>
+        <div id="publicHolidayList"></div>
+        <div class="add-holiday-row">
+          <select id="newPublicState">
+            <option value="">— Select state —</option>
+            <option value="BW">Baden-Württemberg</option>
+            <option value="BY">Bavaria</option>
+            <option value="BE">Berlin</option>
+            <option value="BB">Brandenburg</option>
+            <option value="HB">Bremen</option>
+            <option value="HH">Hamburg</option>
+            <option value="HE">Hesse</option>
+            <option value="MV">Mecklenburg-Vorpommern</option>
+            <option value="NI">Lower Saxony</option>
+            <option value="NW">North Rhine-Westphalia</option>
+            <option value="RP">Rhineland-Palatinate</option>
+            <option value="SL">Saarland</option>
+            <option value="SN">Saxony</option>
+            <option value="ST">Saxony-Anhalt</option>
+            <option value="SH">Schleswig-Holstein</option>
+            <option value="TH">Thuringia</option>
+          </select>
+          <input type="color" id="newPublicColor" value="#e8a020" />
+          <button id="addPublicHoliday" type="button" class="primary">Add</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>School Holidays</h2>
+        <p class="hint">Select one or more German states. School holidays appear as a colored background over the entire day cell.</p>
+        <div id="schoolHolidayList"></div>
+        <div class="add-holiday-row">
+          <select id="newSchoolState">
+            <option value="">— Select state —</option>
+            <option value="BW">Baden-Württemberg</option>
+            <option value="BY">Bavaria</option>
+            <option value="BE">Berlin</option>
+            <option value="BB">Brandenburg</option>
+            <option value="HB">Bremen</option>
+            <option value="HH">Hamburg</option>
+            <option value="HE">Hesse</option>
+            <option value="MV">Mecklenburg-Vorpommern</option>
+            <option value="NI">Lower Saxony</option>
+            <option value="NW">North Rhine-Westphalia</option>
+            <option value="RP">Rhineland-Palatinate</option>
+            <option value="SL">Saarland</option>
+            <option value="SN">Saxony</option>
+            <option value="ST">Saxony-Anhalt</option>
+            <option value="SH">Schleswig-Holstein</option>
+            <option value="TH">Thuringia</option>
+          </select>
+          <input type="color" id="newSchoolColor" value="#4caf50" />
+          <button id="addSchoolHoliday" type="button" class="primary">Add</button>
+        </div>
+      </section>
+
+      <section>
         <h2>Target URL</h2>
         <div class="field">
           <label for="targetUrl">Airline Tool URL Pattern</label>
           <input type="text" id="targetUrl" placeholder="https://crew.airline.com/*" />
           <small>Use * as wildcard. The calendar strip only appears on pages matching this pattern.</small>
-        </div>
-      </section>
-
-      <section>
-        <h2>Feiertage</h2>
-        <div class="field">
-          <label for="holidayState">Bundesland</label>
-          <select id="holidayState">
-            <option value="">— Keine Feiertage anzeigen —</option>
-            <option value="BW">Baden-Württemberg</option>
-            <option value="BY">Bayern</option>
-            <option value="BE">Berlin</option>
-            <option value="BB">Brandenburg</option>
-            <option value="HB">Bremen</option>
-            <option value="HH">Hamburg</option>
-            <option value="HE">Hessen</option>
-            <option value="MV">Mecklenburg-Vorpommern</option>
-            <option value="NI">Niedersachsen</option>
-            <option value="NW">Nordrhein-Westfalen</option>
-            <option value="RP">Rheinland-Pfalz</option>
-            <option value="SL">Saarland</option>
-            <option value="SN">Sachsen</option>
-            <option value="ST">Sachsen-Anhalt</option>
-            <option value="SH">Schleswig-Holstein</option>
-            <option value="TH">Thüringen</option>
-          </select>
-          <small>Feiertage werden als farbige Umrandung im Kalenderstreifen angezeigt.</small>
         </div>
       </section>
 

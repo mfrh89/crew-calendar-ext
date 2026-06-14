@@ -8,7 +8,8 @@ export const settingsStorage = storage.defineItem<Settings>('local:settings', {
     targetUrl: '',
     syncIntervalMinutes: 30,
     stripPosition: 'below',
-    holidayState: null,
+    publicHolidayStates: [],
+    schoolHolidayStates: [],
   },
 });
 

@@ -7,6 +7,11 @@ const MAX_DOTS = 3;
 const DOT_SIZE = 10;
 const DOT_OVERLAP = -3;
 
+export interface HolidayLayer {
+  days: Set<number>;
+  color: string;
+}
+
 export function injectBanner(dayBar: DayBarInfo): void {
   document.getElementById(BANNER_ID)?.remove();
 
@@ -32,15 +37,14 @@ export function removeBanner(): void {
   document.getElementById(BANNER_ID)?.remove();
 }
 
-const HOLIDAY_BORDER_COLOR = '#e8a020';
-
 export function injectStrip(
   dayBar: DayBarInfo,
   events: CalendarEvent[],
   _position: 'above' | 'below',
   onSingleClick: (events: CalendarEvent[], day: number) => void,
   onDayClick: (events: CalendarEvent[], day: number) => void,
-  holidayDays: Set<number> = new Set(),
+  publicHolidays: HolidayLayer[] = [],
+  schoolHolidays: HolidayLayer[] = [],
 ): HTMLElement {
   removeStrip();
 
@@ -67,7 +71,23 @@ export function injectStrip(
     const dayEvents = inMonth ? (eventsByDay.get(dayNum) ?? []) : [];
     const isWeekend = inMonth && isWeekendDay(dayBar.year, dayBar.month, dayNum);
 
-    const isHoliday = inMonth && holidayDays.has(dayNum);
+    // School holiday: first matching layer determines background color
+    const schoolLayer = inMonth ? schoolHolidays.find(l => l.days.has(dayNum)) : undefined;
+
+    // Public holidays: collect all matching layers for border
+    const pubLayers = inMonth ? publicHolidays.filter(l => l.days.has(dayNum)) : [];
+
+    // Build box-shadow for stacked public holiday borders (2px per layer, inset)
+    const boxShadow = pubLayers
+      .map((l, i) => `inset 0 0 0 ${(i + 1) * 2}px ${l.color}`)
+      .join(', ');
+
+    let bg: string;
+    if (schoolLayer) {
+      bg = hexToRgba(schoolLayer.color, 0.35);
+    } else {
+      bg = isWeekend ? '#e0e0e0' : '#f0f0f0';
+    }
 
     const cell = document.createElement('div');
     cell.style.cssText = `
@@ -77,8 +97,8 @@ export function injectStrip(
       justify-content: center;
       box-sizing: border-box;
       border-right: 1px solid #ddd;
-      background: ${isWeekend ? '#e0e0e0' : '#f0f0f0'};
-      ${isHoliday ? `box-shadow: inset 0 0 0 2px ${HOLIDAY_BORDER_COLOR};` : ''}
+      background: ${bg};
+      ${boxShadow ? `box-shadow: ${boxShadow};` : ''}
     `;
 
     if (dayEvents.length === 1) {
@@ -135,12 +155,20 @@ export function injectStrip(
 
   canvas.parentNode!.insertBefore(strip, canvas);
 
-  console.log('[CrewCal] Strip injected with', dayBar.totalColumns, 'columns,', dayBar.daysInMonth, 'active days, parent:', canvas.parentElement?.tagName, canvas.parentElement?.id);
+  console.log('[CrewCal] Strip injected with', dayBar.totalColumns, 'columns,', dayBar.daysInMonth, 'active days');
   return strip;
 }
 
 export function removeStrip(): void {
   document.getElementById(STRIP_ID)?.remove();
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function createDot(event: CalendarEvent): HTMLDivElement {

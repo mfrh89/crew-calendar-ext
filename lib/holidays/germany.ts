@@ -1,21 +1,23 @@
 export const BUNDESLAENDER: Record<string, string> = {
   BW: 'Baden-Württemberg',
-  BY: 'Bayern',
+  BY: 'Bavaria',
   BE: 'Berlin',
   BB: 'Brandenburg',
   HB: 'Bremen',
   HH: 'Hamburg',
-  HE: 'Hessen',
+  HE: 'Hesse',
   MV: 'Mecklenburg-Vorpommern',
-  NI: 'Niedersachsen',
-  NW: 'Nordrhein-Westfalen',
-  RP: 'Rheinland-Pfalz',
+  NI: 'Lower Saxony',
+  NW: 'North Rhine-Westphalia',
+  RP: 'Rhineland-Palatinate',
   SL: 'Saarland',
-  SN: 'Sachsen',
-  ST: 'Sachsen-Anhalt',
+  SN: 'Saxony',
+  ST: 'Saxony-Anhalt',
   SH: 'Schleswig-Holstein',
-  TH: 'Thüringen',
+  TH: 'Thuringia',
 };
+
+// ─── Public Holidays ──────────────────────────────────────────────────────────
 
 function easterSunday(year: number): Date {
   const a = year % 19;
@@ -41,94 +43,151 @@ function shift(base: Date, days: number): Date {
   return d;
 }
 
-function key(d: Date): string {
+function dateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// Returns Wednesday before Nov 23 (Buß- und Bettag, only Sachsen)
 function bussUndBettag(year: number): Date {
   const nov23 = new Date(year, 10, 23);
-  const dow = nov23.getDay(); // 0=Sun
-  // Go back to Wednesday (3)
-  const daysBack = (dow >= 3) ? dow - 3 : dow + 4;
+  const dow = nov23.getDay();
+  const daysBack = dow >= 3 ? dow - 3 : dow + 4;
   return shift(nov23, -daysBack);
 }
 
-export function getHolidays(year: number, state: string): Set<string> {
+export function getPublicHolidays(year: number, state: string): Set<string> {
   const easter = easterSunday(year);
   const set = new Set<string>();
+  const add = (d: Date) => set.add(dateKey(d));
 
-  const add = (d: Date) => set.add(key(d));
+  add(new Date(year, 0, 1));
+  add(shift(easter, -2));
+  add(shift(easter, 1));
+  add(new Date(year, 4, 1));
+  add(shift(easter, 39));
+  add(shift(easter, 50));
+  add(new Date(year, 9, 3));
+  add(new Date(year, 11, 25));
+  add(new Date(year, 11, 26));
 
-  // Nationwide
-  add(new Date(year, 0, 1));   // Neujahr
-  add(shift(easter, -2));       // Karfreitag
-  add(shift(easter, 1));        // Ostermontag
-  add(new Date(year, 4, 1));   // Tag der Arbeit
-  add(shift(easter, 39));       // Christi Himmelfahrt
-  add(shift(easter, 50));       // Pfingstmontag
-  add(new Date(year, 9, 3));   // Tag der Deutschen Einheit
-  add(new Date(year, 11, 25)); // 1. Weihnachtstag
-  add(new Date(year, 11, 26)); // 2. Weihnachtstag
-
-  // Heilige Drei Könige
-  if (['BW', 'BY', 'ST'].includes(state)) {
-    add(new Date(year, 0, 6));
-  }
-
-  // Internationaler Frauentag
-  if (['BE', 'MV'].includes(state)) {
-    add(new Date(year, 2, 8));
-  }
-
-  // Gründonnerstag (only BB)
-  if (state === 'BB') {
-    add(shift(easter, -3));
-  }
-
-  // Fronleichnam
-  if (['BW', 'BY', 'HE', 'NW', 'RP', 'SL'].includes(state)) {
-    add(shift(easter, 60));
-  }
-
-  // Maria Himmelfahrt
-  if (['BY', 'SL'].includes(state)) {
-    add(new Date(year, 7, 15));
-  }
-
-  // Weltkindertag (TH, seit 2019)
-  if (state === 'TH' && year >= 2019) {
-    add(new Date(year, 8, 20));
-  }
-
-  // Reformationstag
-  if (['BB', 'HB', 'HH', 'MV', 'NI', 'SN', 'ST', 'SH', 'TH'].includes(state)) {
-    add(new Date(year, 9, 31));
-  }
-
-  // Allerheiligen
-  if (['BW', 'BY', 'NW', 'RP', 'SL'].includes(state)) {
-    add(new Date(year, 10, 1));
-  }
-
-  // Buß- und Bettag (only SN)
-  if (state === 'SN') {
-    add(bussUndBettag(year));
-  }
+  if (['BW', 'BY', 'ST'].includes(state)) add(new Date(year, 0, 6));
+  if (['BE', 'MV'].includes(state)) add(new Date(year, 2, 8));
+  if (state === 'BB') add(shift(easter, -3));
+  if (['BW', 'BY', 'HE', 'NW', 'RP', 'SL'].includes(state)) add(shift(easter, 60));
+  if (['BY', 'SL'].includes(state)) add(new Date(year, 7, 15));
+  if (state === 'TH' && year >= 2019) add(new Date(year, 8, 20));
+  if (['BB', 'HB', 'HH', 'MV', 'NI', 'SN', 'ST', 'SH', 'TH'].includes(state)) add(new Date(year, 9, 31));
+  if (['BW', 'BY', 'NW', 'RP', 'SL'].includes(state)) add(new Date(year, 10, 1));
+  if (state === 'SN') add(bussUndBettag(year));
 
   return set;
 }
 
-/**
- * Returns a Set of day-numbers (1–31) that are holidays in the given month/year/state.
- */
-export function getHolidayDaysInMonth(year: number, month: number, state: string): Set<number> {
-  const holidays = getHolidays(year, state);
+export function getPublicHolidayDaysInMonth(year: number, month: number, state: string): Set<number> {
+  const holidays = getPublicHolidays(year, state);
   const days = new Set<number>();
   const daysInMonth = new Date(year, month, 0).getDate();
   for (let d = 1; d <= daysInMonth; d++) {
     const k = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     if (holidays.has(k)) days.add(d);
   }
+  return days;
+}
+
+// ─── School Holidays ──────────────────────────────────────────────────────────
+// Source: KMK (Kultusministerkonferenz) official schedules
+// Dates are inclusive on both ends.
+
+type DateRange = [string, string]; // [YYYY-MM-DD, YYYY-MM-DD]
+type SchoolHolidayData = Record<number, Record<string, DateRange[]>>;
+
+const SCHOOL_HOLIDAYS: SchoolHolidayData = {
+  2024: {
+    BW: [['2024-01-02','2024-01-05'],['2024-03-25','2024-04-05'],['2024-05-21','2024-05-31'],['2024-07-25','2024-09-07'],['2024-10-28','2024-10-30'],['2024-12-23','2025-01-04']],
+    BY: [['2024-02-12','2024-02-16'],['2024-03-25','2024-04-06'],['2024-05-22','2024-06-01'],['2024-07-29','2024-09-09'],['2024-10-28','2024-11-01'],['2024-12-21','2025-01-03']],
+    BE: [['2024-01-29','2024-02-10'],['2024-03-25','2024-04-05'],['2024-05-10','2024-05-10'],['2024-07-22','2024-09-07'],['2024-10-21','2024-11-02'],['2024-12-23','2025-01-03']],
+    BB: [['2024-01-29','2024-02-10'],['2024-03-25','2024-04-05'],['2024-05-10','2024-05-10'],['2024-07-22','2024-09-07'],['2024-10-21','2024-11-02'],['2024-12-23','2025-01-03']],
+    HB: [['2024-03-25','2024-04-05'],['2024-07-04','2024-08-14'],['2024-10-14','2024-10-25'],['2024-12-23','2025-01-03']],
+    HH: [['2024-01-26','2024-01-26'],['2024-03-18','2024-04-02'],['2024-07-18','2024-08-28'],['2024-10-04','2024-10-18'],['2024-12-20','2025-01-03']],
+    HE: [['2024-03-25','2024-04-13'],['2024-07-15','2024-08-23'],['2024-10-14','2024-10-19'],['2024-12-20','2025-01-11']],
+    MV: [['2024-02-05','2024-02-16'],['2024-03-25','2024-04-03'],['2024-07-08','2024-08-17'],['2024-10-07','2024-10-19'],['2024-12-21','2025-01-03']],
+    NI: [['2024-01-29','2024-02-09'],['2024-03-25','2024-04-05'],['2024-07-04','2024-08-14'],['2024-10-04','2024-10-18'],['2024-12-23','2025-01-03']],
+    NW: [['2024-03-25','2024-04-06'],['2024-07-08','2024-08-20'],['2024-10-14','2024-10-26'],['2024-12-23','2025-01-06']],
+    RP: [['2024-03-25','2024-04-02'],['2024-07-01','2024-08-09'],['2024-10-14','2024-10-25'],['2024-12-23','2025-01-07']],
+    SL: [['2024-02-12','2024-02-16'],['2024-03-25','2024-04-05'],['2024-07-01','2024-08-09'],['2024-10-21','2024-11-01'],['2024-12-23','2025-01-03']],
+    SN: [['2024-02-12','2024-02-23'],['2024-03-28','2024-04-05'],['2024-07-22','2024-08-30'],['2024-10-07','2024-10-19'],['2024-12-23','2025-01-03']],
+    ST: [['2024-02-05','2024-02-09'],['2024-03-25','2024-04-06'],['2024-07-08','2024-08-14'],['2024-10-07','2024-10-11'],['2024-12-21','2025-01-03']],
+    SH: [['2024-03-18','2024-04-02'],['2024-07-18','2024-08-28'],['2024-10-04','2024-10-19'],['2024-12-19','2025-01-03']],
+    TH: [['2024-02-12','2024-02-16'],['2024-03-25','2024-04-06'],['2024-07-08','2024-08-16'],['2024-10-21','2024-11-01'],['2024-12-23','2025-01-03']],
+  },
+  2025: {
+    BW: [['2025-01-07','2025-01-07'],['2025-04-11','2025-04-25'],['2025-06-10','2025-06-20'],['2025-07-31','2025-09-13'],['2025-10-27','2025-10-31'],['2025-12-22','2026-01-05']],
+    BY: [['2025-03-03','2025-03-07'],['2025-04-14','2025-04-25'],['2025-06-10','2025-06-20'],['2025-08-01','2025-09-15'],['2025-10-27','2025-10-31'],['2025-12-22','2026-01-05']],
+    BE: [['2025-01-27','2025-02-01'],['2025-04-14','2025-04-25'],['2025-07-24','2025-09-06'],['2025-10-20','2025-11-01'],['2025-12-22','2026-01-02']],
+    BB: [['2025-01-27','2025-02-01'],['2025-04-14','2025-04-25'],['2025-07-24','2025-09-06'],['2025-10-20','2025-11-01'],['2025-12-22','2026-01-02']],
+    HB: [['2025-03-10','2025-03-21'],['2025-04-14','2025-04-18'],['2025-07-03','2025-08-13'],['2025-10-13','2025-10-24'],['2025-12-22','2026-01-05']],
+    HH: [['2025-01-31','2025-01-31'],['2025-03-10','2025-03-21'],['2025-07-17','2025-08-27'],['2025-10-06','2025-10-17'],['2025-12-19','2026-01-02']],
+    HE: [['2025-04-14','2025-04-25'],['2025-07-07','2025-08-15'],['2025-10-06','2025-10-17'],['2025-12-22','2026-01-10']],
+    MV: [['2025-02-03','2025-02-08'],['2025-04-14','2025-04-18'],['2025-07-07','2025-08-16'],['2025-10-06','2025-10-17'],['2025-12-22','2026-01-03']],
+    NI: [['2025-01-30','2025-01-31'],['2025-03-10','2025-03-21'],['2025-07-03','2025-08-13'],['2025-10-06','2025-10-17'],['2025-12-22','2026-01-05']],
+    NW: [['2025-04-14','2025-04-26'],['2025-07-07','2025-08-19'],['2025-10-13','2025-10-25'],['2025-12-22','2026-01-06']],
+    RP: [['2025-04-14','2025-04-25'],['2025-07-07','2025-08-15'],['2025-10-13','2025-10-24'],['2025-12-22','2026-01-07']],
+    SL: [['2025-02-17','2025-02-21'],['2025-04-14','2025-04-25'],['2025-07-07','2025-08-15'],['2025-10-20','2025-10-31'],['2025-12-22','2026-01-05']],
+    SN: [['2025-02-17','2025-03-01'],['2025-04-14','2025-04-18'],['2025-07-21','2025-08-29'],['2025-10-06','2025-10-18'],['2025-12-22','2026-01-02']],
+    ST: [['2025-02-17','2025-03-01'],['2025-04-14','2025-04-22'],['2025-07-21','2025-08-27'],['2025-10-06','2025-10-10'],['2025-12-22','2026-01-05']],
+    SH: [['2025-03-10','2025-03-21'],['2025-07-17','2025-08-27'],['2025-10-06','2025-10-18'],['2025-12-22','2026-01-05']],
+    TH: [['2025-02-17','2025-03-01'],['2025-04-14','2025-04-25'],['2025-07-28','2025-09-06'],['2025-10-20','2025-10-31'],['2025-12-22','2026-01-03']],
+  },
+  2026: {
+    BW: [['2026-01-06','2026-01-06'],['2026-03-30','2026-04-10'],['2026-06-02','2026-06-12'],['2026-07-30','2026-09-12'],['2026-10-26','2026-10-30'],['2026-12-23','2027-01-08']],
+    BY: [['2026-03-02','2026-03-06'],['2026-04-09','2026-04-24'],['2026-06-02','2026-06-12'],['2026-07-30','2026-09-14'],['2026-11-02','2026-11-06'],['2026-12-23','2027-01-08']],
+    BE: [['2026-02-02','2026-02-07'],['2026-03-30','2026-04-10'],['2026-07-23','2026-09-05'],['2026-10-19','2026-10-31'],['2026-12-21','2027-01-02']],
+    BB: [['2026-02-02','2026-02-07'],['2026-03-30','2026-04-10'],['2026-07-23','2026-09-05'],['2026-10-19','2026-10-31'],['2026-12-21','2027-01-02']],
+    HB: [['2026-03-30','2026-04-10'],['2026-07-02','2026-08-12'],['2026-10-12','2026-10-23'],['2026-12-21','2027-01-05']],
+    HH: [['2026-03-16','2026-03-27'],['2026-07-16','2026-08-26'],['2026-10-05','2026-10-16'],['2026-12-18','2027-01-01']],
+    HE: [['2026-03-30','2026-04-10'],['2026-07-06','2026-08-14'],['2026-10-05','2026-10-16'],['2026-12-21','2027-01-09']],
+    MV: [['2026-02-09','2026-02-14'],['2026-03-30','2026-04-03'],['2026-07-06','2026-08-15'],['2026-10-05','2026-10-16'],['2026-12-21','2027-01-02']],
+    NI: [['2026-02-02','2026-02-06'],['2026-03-16','2026-03-27'],['2026-07-02','2026-08-12'],['2026-10-05','2026-10-16'],['2026-12-21','2027-01-05']],
+    NW: [['2026-03-30','2026-04-11'],['2026-07-06','2026-08-18'],['2026-10-12','2026-10-24'],['2026-12-21','2027-01-06']],
+    RP: [['2026-03-30','2026-04-10'],['2026-07-06','2026-08-14'],['2026-10-12','2026-10-23'],['2026-12-21','2027-01-08']],
+    SL: [['2026-02-16','2026-02-20'],['2026-03-30','2026-04-10'],['2026-07-06','2026-08-14'],['2026-10-19','2026-10-30'],['2026-12-21','2027-01-05']],
+    SN: [['2026-02-16','2026-02-27'],['2026-04-02','2026-04-10'],['2026-07-20','2026-08-28'],['2026-10-05','2026-10-17'],['2026-12-21','2027-01-02']],
+    ST: [['2026-02-16','2026-02-27'],['2026-03-30','2026-04-10'],['2026-07-20','2026-08-26'],['2026-10-05','2026-10-09'],['2026-12-21','2027-01-05']],
+    SH: [['2026-03-16','2026-03-27'],['2026-07-16','2026-08-26'],['2026-10-05','2026-10-17'],['2026-12-21','2027-01-05']],
+    TH: [['2026-02-16','2026-02-27'],['2026-03-30','2026-04-10'],['2026-07-27','2026-09-05'],['2026-10-19','2026-10-30'],['2026-12-21','2027-01-02']],
+  },
+};
+
+function parseDateStr(s: string): Date {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+export function getSchoolHolidayDaysInMonth(year: number, month: number, state: string): Set<number> {
+  const days = new Set<number>();
+  const ranges: DateRange[] = [];
+
+  // Include ranges from adjacent years to catch cross-year holidays
+  for (const y of [year - 1, year, year + 1]) {
+    const stateData = SCHOOL_HOLIDAYS[y]?.[state];
+    if (stateData) ranges.push(...stateData);
+  }
+
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = new Date(year, month - 1, new Date(year, month, 0).getDate());
+
+  for (const [startStr, endStr] of ranges) {
+    const rangeStart = parseDateStr(startStr);
+    const rangeEnd = parseDateStr(endStr);
+
+    if (rangeEnd < monthStart || rangeStart > monthEnd) continue;
+
+    const effectiveStart = rangeStart < monthStart ? monthStart : rangeStart;
+    const effectiveEnd = rangeEnd > monthEnd ? monthEnd : rangeEnd;
+
+    for (let d = new Date(effectiveStart); d <= effectiveEnd; d.setDate(d.getDate() + 1)) {
+      days.add(d.getDate());
+    }
+  }
+
   return days;
 }

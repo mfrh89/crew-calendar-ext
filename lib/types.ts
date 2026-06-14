@@ -29,6 +29,11 @@ export interface DayBarInfo {
   year: number;
 }
 
+export interface HolidayStateConfig {
+  state: string;
+  color: string;
+}
+
 export interface Settings {
   enabled: boolean;
   calendarSources: CalendarSource[];
@@ -36,7 +41,8 @@ export interface Settings {
   syncIntervalMinutes: number;
   stripPosition: 'above' | 'below';
   customSelector?: string;
-  holidayState: string | null;
+  publicHolidayStates: HolidayStateConfig[];
+  schoolHolidayStates: HolidayStateConfig[];
 }
 
 export interface SyncState {

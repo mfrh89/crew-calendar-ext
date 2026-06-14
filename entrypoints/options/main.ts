@@ -1,5 +1,6 @@
 import { settingsStorage } from '@/lib/storage/settings';
-import type { CalendarSource } from '@/lib/types';
+import { BUNDESLAENDER } from '@/lib/holidays/germany';
+import type { CalendarSource, HolidayStateConfig } from '@/lib/types';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -13,11 +14,22 @@ const testStatusEl = $<HTMLDivElement>('testStatus');
 const targetUrlInput = $<HTMLInputElement>('targetUrl');
 const stripPositionSelect = $<HTMLSelectElement>('stripPosition');
 const syncIntervalSelect = $<HTMLSelectElement>('syncInterval');
-const holidayStateSelect = $<HTMLSelectElement>('holidayState');
 const saveBtn = $<HTMLButtonElement>('save');
 const saveStatusEl = $<HTMLSpanElement>('saveStatus');
 
+const publicHolidayListEl = $<HTMLDivElement>('publicHolidayList');
+const newPublicStateSelect = $<HTMLSelectElement>('newPublicState');
+const newPublicColorInput = $<HTMLInputElement>('newPublicColor');
+const addPublicHolidayBtn = $<HTMLButtonElement>('addPublicHoliday');
+
+const schoolHolidayListEl = $<HTMLDivElement>('schoolHolidayList');
+const newSchoolStateSelect = $<HTMLSelectElement>('newSchoolState');
+const newSchoolColorInput = $<HTMLInputElement>('newSchoolColor');
+const addSchoolHolidayBtn = $<HTMLButtonElement>('addSchoolHoliday');
+
 let calendarSources: CalendarSource[] = [];
+let publicHolidayStates: HolidayStateConfig[] = [];
+let schoolHolidayStates: HolidayStateConfig[] = [];
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 async function save() {
@@ -28,7 +40,8 @@ async function save() {
     targetUrl: targetUrlInput.value.trim(),
     syncIntervalMinutes: parseInt(syncIntervalSelect.value, 10),
     stripPosition: stripPositionSelect.value as 'above' | 'below',
-    holidayState: holidayStateSelect.value || null,
+    publicHolidayStates,
+    schoolHolidayStates,
   });
 
   await browser.runtime.sendMessage({ type: 'SYNC_NOW' });
@@ -46,11 +59,14 @@ function scheduleSave() {
 async function init() {
   const settings = await settingsStorage.getValue();
   calendarSources = [...settings.calendarSources];
+  publicHolidayStates = [...(settings.publicHolidayStates ?? [])];
+  schoolHolidayStates = [...(settings.schoolHolidayStates ?? [])];
   targetUrlInput.value = settings.targetUrl;
   stripPositionSelect.value = settings.stripPosition;
   syncIntervalSelect.value = String(settings.syncIntervalMinutes);
-  holidayStateSelect.value = settings.holidayState ?? '';
   renderCalendars();
+  renderHolidayList(publicHolidayListEl, publicHolidayStates, () => renderHolidayList(publicHolidayListEl, publicHolidayStates, () => {}));
+  renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => {}));
 }
 
 function renderCalendars() {
@@ -93,6 +109,45 @@ function renderCalendars() {
 
     item.append(colorInput, nameInput, url, removeBtn);
     calendarListEl.appendChild(item);
+  }
+}
+
+function renderHolidayList(
+  container: HTMLDivElement,
+  list: HolidayStateConfig[],
+  onChange: () => void,
+) {
+  container.innerHTML = '';
+  for (let i = 0; i < list.length; i++) {
+    const cfg = list[i];
+    const item = document.createElement('div');
+    item.className = 'cal-item';
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'cal-color-input';
+    colorInput.value = cfg.color;
+    colorInput.addEventListener('input', () => {
+      list[i].color = colorInput.value;
+      scheduleSave();
+    });
+
+    const label = document.createElement('span');
+    label.className = 'cal-name-input';
+    label.style.cssText = 'flex:1; padding: 4px 6px; font-size:13px; font-weight:500;';
+    label.textContent = BUNDESLAENDER[cfg.state] ?? cfg.state;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'cal-remove';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => {
+      list.splice(i, 1);
+      onChange();
+      scheduleSave();
+    });
+
+    item.append(colorInput, label, removeBtn);
+    container.appendChild(item);
   }
 }
 
@@ -151,10 +206,29 @@ addCalBtn.addEventListener('click', async () => {
   scheduleSave();
 });
 
+addPublicHolidayBtn.addEventListener('click', () => {
+  const state = newPublicStateSelect.value;
+  if (!state) return;
+  if (publicHolidayStates.some(s => s.state === state)) return;
+  publicHolidayStates.push({ state, color: newPublicColorInput.value });
+  newPublicStateSelect.value = '';
+  renderHolidayList(publicHolidayListEl, publicHolidayStates, () => renderHolidayList(publicHolidayListEl, publicHolidayStates, () => {}));
+  scheduleSave();
+});
+
+addSchoolHolidayBtn.addEventListener('click', () => {
+  const state = newSchoolStateSelect.value;
+  if (!state) return;
+  if (schoolHolidayStates.some(s => s.state === state)) return;
+  schoolHolidayStates.push({ state, color: newSchoolColorInput.value });
+  newSchoolStateSelect.value = '';
+  renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => {}));
+  scheduleSave();
+});
+
 targetUrlInput.addEventListener('input', scheduleSave);
 stripPositionSelect.addEventListener('change', scheduleSave);
 syncIntervalSelect.addEventListener('change', scheduleSave);
-holidayStateSelect.addEventListener('change', scheduleSave);
 
 saveBtn.addEventListener('click', () => {
   if (saveTimeout) clearTimeout(saveTimeout);
