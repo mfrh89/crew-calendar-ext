@@ -120,27 +120,44 @@ function detectLeftOffset(canvas: HTMLCanvasElement, totalColumns: number): numb
     darkRatio[x] = darkCount / scanHeight;
   }
 
-  let bestOffset = 0;
-  let bestScore = -1;
-
-  for (let offset = 0; offset <= 60; offset++) {
-    const colWidth = (w - offset) / totalColumns;
-    if (colWidth < 15 || colWidth > 40) continue;
-
-    let score = 0;
-    for (let i = 0; i <= totalColumns; i++) {
-      const x = Math.round(offset + i * colWidth);
-      let maxRatio = 0;
-      for (let dx = -1; dx <= 1; dx++) {
-        const xx = x + dx;
-        if (xx >= 0 && xx < w) maxRatio = Math.max(maxRatio, darkRatio[xx]);
+  const candidates: number[] = [];
+  for (let x = 0; x < w; x++) {
+    if (darkRatio[x] > 0.5) {
+      if (candidates.length === 0 || x - candidates[candidates.length - 1] > 3) {
+        candidates.push(x);
       }
-      score += maxRatio;
+    }
+  }
+
+  let bestOffset = 0;
+
+  if (candidates.length >= 5) {
+    const spacingCounts = new Map<number, number>();
+    for (let i = 1; i < candidates.length; i++) {
+      const s = candidates[i] - candidates[i - 1];
+      if (s >= 15 && s <= 50) {
+        spacingCounts.set(s, (spacingCounts.get(s) || 0) + 1);
+      }
     }
 
-    if (score > bestScore) {
-      bestScore = score;
-      bestOffset = offset;
+    let modeSpacing = 0;
+    let maxCount = 0;
+    for (const [s, c] of spacingCounts) {
+      if (c > maxCount) { modeSpacing = s; maxCount = c; }
+    }
+
+    if (modeSpacing > 0) {
+      let sumSpacing = 0;
+      let countSpacing = 0;
+      for (let i = 1; i < candidates.length; i++) {
+        const s = candidates[i] - candidates[i - 1];
+        if (Math.abs(s - modeSpacing) <= 2) {
+          sumSpacing += s;
+          countSpacing++;
+        }
+      }
+      const avgColWidth = countSpacing > 0 ? sumSpacing / countSpacing : modeSpacing;
+      bestOffset = Math.max(0, Math.round(w - totalColumns * avgColWidth));
     }
   }
 
@@ -150,7 +167,7 @@ function detectLeftOffset(canvas: HTMLCanvasElement, totalColumns: number): numb
   }
 
   cachedLeftOffset = { offset: bestOffset, canvasW: w, canvasH: h };
-  console.log('[CrewCal] Detected left offset:', bestOffset, 'px (canvas:', w, 'x', h, ', display:', displayWidth, ')');
+  console.log('[CrewCal] Detected left offset:', bestOffset, 'px (canvas:', w, 'x', h, ', display:', displayWidth, ', gridLines:', candidates.length, ')');
   return bestOffset;
 }
 

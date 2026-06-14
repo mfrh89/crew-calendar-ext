@@ -33,13 +33,15 @@ export default defineContentScript({
 
     let currentDayBar: DayBarInfo | null = null;
     let modal: HTMLElement | null = null;
+    let lastRenderKey = '';
 
-    async function render() {
+    async function render(force = false) {
       const currentSettings = await settingsStorage.getValue();
       if (!currentSettings.enabled) {
         removeStrip();
         removeBanner();
         currentDayBar = null;
+        lastRenderKey = '';
         return;
       }
 
@@ -48,10 +50,16 @@ export default defineContentScript({
         removeStrip();
         removeBanner();
         currentDayBar = null;
+        lastRenderKey = '';
         return;
       }
 
+      const renderKey = `${dayBar.year}-${dayBar.month}-${dayBar.canvasWidth}-${dayBar.leftOffset}`;
+      const stripExists = !!document.getElementById('crew-calendar-strip');
+      if (!force && stripExists && renderKey === lastRenderKey) return;
+
       currentDayBar = dayBar;
+      lastRenderKey = renderKey;
       injectBanner(dayBar);
       const events = await loadEvents(dayBar.year, dayBar.month);
       console.log('[CrewCal] Rendering', events.length, 'events for', dayBar.month + '/' + dayBar.year);
@@ -190,7 +198,7 @@ export default defineContentScript({
 
     browser.storage.onChanged.addListener((changes) => {
       if (changes['settings'] || Object.keys(changes).some((k) => k.startsWith('events_'))) {
-        render();
+        render(true);
       }
     });
 
