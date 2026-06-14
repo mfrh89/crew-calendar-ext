@@ -13,7 +13,7 @@ export interface HolidayLayer {
 }
 
 export function injectBanner(dayBar: DayBarInfo): void {
-  document.getElementById(BANNER_ID)?.remove();
+  if (document.getElementById(BANNER_ID)) return;
 
   const canvas = dayBar.canvasElement;
 

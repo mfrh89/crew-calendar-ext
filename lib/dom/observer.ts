@@ -22,7 +22,7 @@ export function observeDOMChanges(
   const observer = new MutationObserver((mutations) => {
     if (mutations.every(isOwnMutation)) return;
     if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(onMutation, 300);
+    timeout = setTimeout(onMutation, 50);
   });
 
   observer.observe(document.body, {

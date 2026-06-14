@@ -21,6 +21,11 @@ export default defineBackground(() => {
       return true;
     }
 
+    if (message.type === 'FETCH_SCHOOL_HOLIDAYS') {
+      fetchSchoolHolidays(message.state, message.year).then(sendResponse);
+      return true;
+    }
+
     return false;
   });
 
@@ -34,6 +39,24 @@ async function setupAlarm(): Promise<void> {
   await browser.alarms.create(ALARM_NAME, {
     periodInMinutes: settings.syncIntervalMinutes,
   });
+}
+
+async function fetchSchoolHolidays(state: string, year: number) {
+  try {
+    const resp = await fetch(`https://ferien-api.de/api/v1/holidays/${state}/${year}`);
+    if (!resp.ok) return { ok: false, error: `HTTP ${resp.status}` };
+    const items = await resp.json() as Array<{ start: string; end: string }>;
+    const ranges = items.map(item => {
+      const startDate = new Date(item.start);
+      const endDate = new Date(item.end);
+      endDate.setDate(endDate.getDate() - 1);
+      const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      return { start: fmt(startDate), end: fmt(endDate) };
+    });
+    return { ok: true, ranges };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
 }
 
 async function testICS(url: string) {

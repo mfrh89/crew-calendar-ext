@@ -54,4 +54,5 @@ export interface SyncState {
 export type BackgroundMessage =
   | { type: 'SYNC_NOW' }
   | { type: 'TEST_ICS'; url: string }
-  | { type: 'TEST_ICS_RESULT'; success: boolean; name?: string; eventCount?: number; error?: string };
+  | { type: 'TEST_ICS_RESULT'; success: boolean; name?: string; eventCount?: number; error?: string }
+  | { type: 'FETCH_SCHOOL_HOLIDAYS'; state: string; year: number };

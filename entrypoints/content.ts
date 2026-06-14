@@ -35,6 +35,12 @@ export default defineContentScript({
     let currentDayBar: DayBarInfo | null = null;
     let modal: HTMLElement | null = null;
     let lastRenderKey = '';
+    let renderTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    function scheduleRender(force = false, delay = 200) {
+      if (renderTimeout) clearTimeout(renderTimeout);
+      renderTimeout = setTimeout(() => render(force), delay);
+    }
 
     async function render(force = false) {
       const currentSettings = await settingsStorage.getValue();
@@ -67,10 +73,12 @@ export default defineContentScript({
         days: getPublicHolidayDaysInMonth(dayBar.year, dayBar.month, cfg.state),
         color: cfg.color,
       }));
-      const schoolHolidays = (currentSettings.schoolHolidayStates ?? []).map(cfg => ({
-        days: getSchoolHolidayDaysInMonth(dayBar.year, dayBar.month, cfg.state),
-        color: cfg.color,
-      }));
+      const schoolHolidays = await Promise.all(
+        (currentSettings.schoolHolidayStates ?? []).map(async cfg => ({
+          days: await getSchoolHolidayDaysInMonth(dayBar.year, dayBar.month, cfg.state),
+          color: cfg.color,
+        }))
+      );
       console.log('[CrewCal] Rendering', events.length, 'events for', dayBar.month + '/' + dayBar.year);
       injectStrip(dayBar, events, currentSettings.stripPosition, showEventsModal, showEventsModal, publicHolidays, schoolHolidays);
     }
@@ -212,8 +220,8 @@ export default defineContentScript({
     });
 
     await render();
-    watchMonthSelect(() => render());
-    observeDOMChanges(() => render());
+    watchMonthSelect(() => scheduleRender(true, 350));
+    observeDOMChanges(() => scheduleRender());
   },
 });
 
