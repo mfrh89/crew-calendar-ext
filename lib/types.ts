@@ -36,6 +36,7 @@ export interface Settings {
   syncIntervalMinutes: number;
   stripPosition: 'above' | 'below';
   customSelector?: string;
+  holidayState: string | null;
 }
 
 export interface SyncState {

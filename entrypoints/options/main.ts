@@ -13,6 +13,7 @@ const testStatusEl = $<HTMLDivElement>('testStatus');
 const targetUrlInput = $<HTMLInputElement>('targetUrl');
 const stripPositionSelect = $<HTMLSelectElement>('stripPosition');
 const syncIntervalSelect = $<HTMLSelectElement>('syncInterval');
+const holidayStateSelect = $<HTMLSelectElement>('holidayState');
 const saveBtn = $<HTMLButtonElement>('save');
 const saveStatusEl = $<HTMLSpanElement>('saveStatus');
 
@@ -27,6 +28,7 @@ async function save() {
     targetUrl: targetUrlInput.value.trim(),
     syncIntervalMinutes: parseInt(syncIntervalSelect.value, 10),
     stripPosition: stripPositionSelect.value as 'above' | 'below',
+    holidayState: holidayStateSelect.value || null,
   });
 
   await browser.runtime.sendMessage({ type: 'SYNC_NOW' });
@@ -47,6 +49,7 @@ async function init() {
   targetUrlInput.value = settings.targetUrl;
   stripPositionSelect.value = settings.stripPosition;
   syncIntervalSelect.value = String(settings.syncIntervalMinutes);
+  holidayStateSelect.value = settings.holidayState ?? '';
   renderCalendars();
 }
 
@@ -151,6 +154,7 @@ addCalBtn.addEventListener('click', async () => {
 targetUrlInput.addEventListener('input', scheduleSave);
 stripPositionSelect.addEventListener('change', scheduleSave);
 syncIntervalSelect.addEventListener('change', scheduleSave);
+holidayStateSelect.addEventListener('change', scheduleSave);
 
 saveBtn.addEventListener('click', () => {
   if (saveTimeout) clearTimeout(saveTimeout);

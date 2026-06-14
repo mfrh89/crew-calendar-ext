@@ -3,6 +3,7 @@ import { injectStrip, removeStrip, injectBanner, removeBanner } from '@/lib/dom/
 import { observeDOMChanges } from '@/lib/dom/observer';
 import { loadEvents } from '@/lib/storage/events';
 import { settingsStorage } from '@/lib/storage/settings';
+import { getHolidayDaysInMonth } from '@/lib/holidays/germany';
 import type { CalendarEvent, DayBarInfo } from '@/lib/types';
 
 const DAY_NAMES_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
@@ -62,8 +63,11 @@ export default defineContentScript({
       lastRenderKey = renderKey;
       injectBanner(dayBar);
       const events = await loadEvents(dayBar.year, dayBar.month);
+      const holidayDays = currentSettings.holidayState
+        ? getHolidayDaysInMonth(dayBar.year, dayBar.month, currentSettings.holidayState)
+        : new Set<number>();
       console.log('[CrewCal] Rendering', events.length, 'events for', dayBar.month + '/' + dayBar.year);
-      injectStrip(dayBar, events, settings.stripPosition, showEventsModal, showEventsModal);
+      injectStrip(dayBar, events, settings.stripPosition, showEventsModal, showEventsModal, holidayDays);
     }
 
     function showEventsModal(events: CalendarEvent[], day: number) {

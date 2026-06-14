@@ -76,13 +76,14 @@ const MONTH_NAMES: Record<string, number> = {
   july: 7, october: 10, december: 12,
 };
 
-let cachedLeftOffset: { offset: number; canvasW: number; canvasH: number } | null = null;
+let cachedLeftOffset: { offset: number; canvasW: number; canvasH: number; displayW: number } | null = null;
 
 function detectLeftOffset(canvas: HTMLCanvasElement, totalColumns: number): number {
   const w = canvas.width;
   const h = canvas.height;
+  const displayW = canvas.offsetWidth;
 
-  if (cachedLeftOffset && cachedLeftOffset.canvasW === w && cachedLeftOffset.canvasH === h) {
+  if (cachedLeftOffset && cachedLeftOffset.canvasW === w && cachedLeftOffset.canvasH === h && cachedLeftOffset.displayW === displayW) {
     console.log('[CrewCal] Using cached left offset:', cachedLeftOffset.offset, 'px');
     return cachedLeftOffset.offset;
   }
@@ -97,9 +98,9 @@ function detectLeftOffset(canvas: HTMLCanvasElement, totalColumns: number): numb
 
   if (w === 0 || h === 0) return 0;
 
-  const startY = Math.floor(h * 0.35);
-  const scanHeight = h - startY;
-  if (scanHeight < 3) return 0;
+  const startY = 0;
+  const scanHeight = Math.max(3, Math.floor(h * 0.25));
+
 
   let imageData: ImageData;
   try {
@@ -166,7 +167,7 @@ function detectLeftOffset(canvas: HTMLCanvasElement, totalColumns: number): numb
     bestOffset = Math.round(bestOffset * displayWidth / w);
   }
 
-  cachedLeftOffset = { offset: bestOffset, canvasW: w, canvasH: h };
+  cachedLeftOffset = { offset: bestOffset, canvasW: w, canvasH: h, displayW };
   console.log('[CrewCal] Detected left offset:', bestOffset, 'px (canvas:', w, 'x', h, ', display:', displayWidth, ', gridLines:', candidates.length, ')');
   return bestOffset;
 }

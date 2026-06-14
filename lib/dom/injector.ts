@@ -32,12 +32,15 @@ export function removeBanner(): void {
   document.getElementById(BANNER_ID)?.remove();
 }
 
+const HOLIDAY_BORDER_COLOR = '#e8a020';
+
 export function injectStrip(
   dayBar: DayBarInfo,
   events: CalendarEvent[],
   _position: 'above' | 'below',
   onSingleClick: (events: CalendarEvent[], day: number) => void,
   onDayClick: (events: CalendarEvent[], day: number) => void,
+  holidayDays: Set<number> = new Set(),
 ): HTMLElement {
   removeStrip();
 
@@ -64,6 +67,8 @@ export function injectStrip(
     const dayEvents = inMonth ? (eventsByDay.get(dayNum) ?? []) : [];
     const isWeekend = inMonth && isWeekendDay(dayBar.year, dayBar.month, dayNum);
 
+    const isHoliday = inMonth && holidayDays.has(dayNum);
+
     const cell = document.createElement('div');
     cell.style.cssText = `
       height: ${TOUCH_HEIGHT}px;
@@ -73,6 +78,7 @@ export function injectStrip(
       box-sizing: border-box;
       border-right: 1px solid #ddd;
       background: ${isWeekend ? '#e0e0e0' : '#f0f0f0'};
+      ${isHoliday ? `box-shadow: inset 0 0 0 2px ${HOLIDAY_BORDER_COLOR};` : ''}
     `;
 
     if (dayEvents.length === 1) {
