@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- White circle with thin navy border -->
+  <circle cx="64" cy="64" r="58" fill="white" stroke="#05164D" stroke-width="3"/>
+
+  <!-- Calendar body -->
+  <rect x="28" y="40" width="72" height="58" rx="5" ry="5" fill="white" stroke="#05164D" stroke-width="4"/>
+
+  <!-- Calendar header bar -->
+  <rect x="28" y="40" width="72" height="20" rx="5" ry="5" fill="#05164D"/>
+  <rect x="28" y="50" width="72" height="10" fill="#05164D"/>
+
+  <!-- Ring hooks -->
+  <rect x="44" y="31" width="7" height="16" rx="3.5" fill="#05164D"/>
+  <rect x="77" y="31" width="7" height="16" rx="3.5" fill="#05164D"/>
+
+  <!-- 3×2 grid, centered -->
+  <!-- Row 1 -->
+  <rect x="36" y="67" width="13" height="11" rx="2" fill="#05164D"/>
+  <rect x="57" y="67" width="13" height="11" rx="2" fill="#05164D"/>
+  <rect x="79" y="67" width="13" height="11" rx="2" fill="#05164D"/>
+  <!-- Row 2 -->
+  <rect x="36" y="82" width="13" height="11" rx="2" fill="#05164D"/>
+  <rect x="57" y="82" width="13" height="11" rx="2" fill="#05164D"/>
+  <rect x="79" y="82" width="13" height="11" rx="2" fill="#05164D"/>
+</svg>
