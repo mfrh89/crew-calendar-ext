@@ -39,7 +39,6 @@ export interface Settings {
   calendarSources: CalendarSource[];
   targetUrl: string;
   syncIntervalMinutes: number;
-  stripPosition: 'above' | 'below';
   customSelector?: string;
   publicHolidayStates: HolidayStateConfig[];
   schoolHolidayStates: HolidayStateConfig[];

@@ -7,30 +7,95 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const calendarListEl = $<HTMLDivElement>('calendarList');
 const newCalUrlInput = $<HTMLInputElement>('newCalUrl');
 const newCalNameInput = $<HTMLInputElement>('newCalName');
-const newCalColorInput = $<HTMLInputElement>('newCalColor');
 const testUrlBtn = $<HTMLButtonElement>('testUrl');
 const addCalBtn = $<HTMLButtonElement>('addCal');
 const testStatusEl = $<HTMLDivElement>('testStatus');
 const targetUrlInput = $<HTMLInputElement>('targetUrl');
-const stripPositionSelect = $<HTMLSelectElement>('stripPosition');
-const syncIntervalSelect = $<HTMLSelectElement>('syncInterval');
 const saveBtn = $<HTMLButtonElement>('save');
 const saveStatusEl = $<HTMLSpanElement>('saveStatus');
 
 const publicHolidayListEl = $<HTMLDivElement>('publicHolidayList');
 const newPublicStateSelect = $<HTMLSelectElement>('newPublicState');
-const newPublicColorInput = $<HTMLInputElement>('newPublicColor');
 const addPublicHolidayBtn = $<HTMLButtonElement>('addPublicHoliday');
 
 const schoolHolidayListEl = $<HTMLDivElement>('schoolHolidayList');
 const newSchoolStateSelect = $<HTMLSelectElement>('newSchoolState');
-const newSchoolColorInput = $<HTMLInputElement>('newSchoolColor');
 const addSchoolHolidayBtn = $<HTMLButtonElement>('addSchoolHoliday');
+
+// 10 distinct, harmonious colors (Sanzo Wada inspired)
+const PALETTE = [
+  '#C8503C', // Vermilion
+  '#C87C3A', // Amber
+  '#A89B2A', // Olive gold
+  '#5A8F3C', // Leaf green
+  '#3A8A72', // Sea green
+  '#3A6FA5', // Cerulean
+  '#3A4F96', // Cobalt
+  '#7A4FA5', // Violet
+  '#A54A7A', // Mauve
+  '#7A3A46', // Burgundy
+];
 
 let calendarSources: CalendarSource[] = [];
 let publicHolidayStates: HolidayStateConfig[] = [];
 let schoolHolidayStates: HolidayStateConfig[] = [];
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function createSwatchPicker(container: HTMLElement, defaultColor: string): { getColor: () => string; setColor: (c: string) => void } {
+  let selected = PALETTE.includes(defaultColor) ? defaultColor : PALETTE[0];
+  let open = false;
+  container.className = 'swatch-picker-wrap';
+
+  function render() {
+    container.innerHTML = '';
+
+    // Trigger: single colored dot
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'swatch-trigger';
+    trigger.style.background = selected;
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      open = !open;
+      render();
+    });
+    container.appendChild(trigger);
+
+    // Dropdown palette
+    if (open) {
+      const dropdown = document.createElement('div');
+      dropdown.className = 'swatch-dropdown';
+      for (const color of PALETTE) {
+        const swatch = document.createElement('button');
+        swatch.type = 'button';
+        swatch.className = 'swatch' + (color === selected ? ' selected' : '');
+        swatch.style.background = color;
+        swatch.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selected = color;
+          open = false;
+          render();
+        });
+        dropdown.appendChild(swatch);
+      }
+      container.appendChild(dropdown);
+
+      // Close on outside click
+      const close = () => { open = false; render(); document.removeEventListener('click', close); };
+      setTimeout(() => document.addEventListener('click', close), 0);
+    }
+  }
+
+  render();
+  return {
+    getColor: () => selected,
+    setColor: (c: string) => { selected = PALETTE.includes(c) ? c : PALETTE[0]; open = false; render(); },
+  };
+}
+
+const calColorPicker = createSwatchPicker($('newCalColorPicker'), PALETTE[6]);
+const publicColorPicker = createSwatchPicker($('newPublicColorPicker'), PALETTE[2]);
+const schoolColorPicker = createSwatchPicker($('newSchoolColorPicker'), PALETTE[4]);
 
 async function save() {
   const current = await settingsStorage.getValue();
@@ -38,13 +103,12 @@ async function save() {
     enabled: current.enabled,
     calendarSources,
     targetUrl: targetUrlInput.value.trim(),
-    syncIntervalMinutes: parseInt(syncIntervalSelect.value, 10),
-    stripPosition: stripPositionSelect.value as 'above' | 'below',
+    syncIntervalMinutes: 30,
     publicHolidayStates,
     schoolHolidayStates,
   });
 
-  await browser.runtime.sendMessage({ type: 'SYNC_NOW' });
+  try { await browser.runtime.sendMessage({ type: 'SYNC_NOW' }); } catch { /* service worker may be inactive */ }
 
   saveStatusEl.textContent = 'Saved!';
   setTimeout(() => { saveStatusEl.textContent = ''; }, 2000);
@@ -62,8 +126,6 @@ async function init() {
   publicHolidayStates = [...(settings.publicHolidayStates ?? [])];
   schoolHolidayStates = [...(settings.schoolHolidayStates ?? [])];
   targetUrlInput.value = settings.targetUrl;
-  stripPositionSelect.value = settings.stripPosition;
-  syncIntervalSelect.value = String(settings.syncIntervalMinutes);
   renderCalendars();
   renderHolidayList(publicHolidayListEl, publicHolidayStates, () => renderHolidayList(publicHolidayListEl, publicHolidayStates, () => {}));
   renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => {}));
@@ -76,14 +138,9 @@ function renderCalendars() {
     const item = document.createElement('div');
     item.className = 'cal-item';
 
-    const colorInput = document.createElement('input');
-    colorInput.type = 'color';
-    colorInput.className = 'cal-color-input';
-    colorInput.value = src.color;
-    colorInput.addEventListener('input', () => {
-      calendarSources[i].color = colorInput.value;
-      scheduleSave();
-    });
+    const colorDot = document.createElement('span');
+    colorDot.className = 'cal-color-dot';
+    colorDot.style.background = src.color;
 
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
@@ -107,7 +164,7 @@ function renderCalendars() {
       scheduleSave();
     });
 
-    item.append(colorInput, nameInput, url, removeBtn);
+    item.append(colorDot, nameInput, url, removeBtn);
     calendarListEl.appendChild(item);
   }
 }
@@ -123,18 +180,12 @@ function renderHolidayList(
     const item = document.createElement('div');
     item.className = 'cal-item';
 
-    const colorInput = document.createElement('input');
-    colorInput.type = 'color';
-    colorInput.className = 'cal-color-input';
-    colorInput.value = cfg.color;
-    colorInput.addEventListener('input', () => {
-      list[i].color = colorInput.value;
-      scheduleSave();
-    });
+    const colorDot = document.createElement('span');
+    colorDot.className = 'cal-color-dot';
+    colorDot.style.background = cfg.color;
 
     const label = document.createElement('span');
-    label.className = 'cal-name-input';
-    label.style.cssText = 'flex:1; padding: 4px 6px; font-size:13px; font-weight:500;';
+    label.style.cssText = 'flex:1; padding: 4px 6px; font-size:13px; font-weight:600; color:#05164D;';
     label.textContent = BUNDESLAENDER[cfg.state] ?? cfg.state;
 
     const removeBtn = document.createElement('button');
@@ -146,7 +197,7 @@ function renderHolidayList(
       scheduleSave();
     });
 
-    item.append(colorInput, label, removeBtn);
+    item.append(colorDot, label, removeBtn);
     container.appendChild(item);
   }
 }
@@ -196,7 +247,7 @@ addCalBtn.addEventListener('click', async () => {
   calendarSources.push({
     url,
     name: newCalNameInput.value.trim() || 'Calendar',
-    color: newCalColorInput.value,
+    color: calColorPicker.getColor(),
   });
 
   newCalUrlInput.value = '';
@@ -210,7 +261,7 @@ addPublicHolidayBtn.addEventListener('click', () => {
   const state = newPublicStateSelect.value;
   if (!state) return;
   if (publicHolidayStates.some(s => s.state === state)) return;
-  publicHolidayStates.push({ state, color: newPublicColorInput.value });
+  publicHolidayStates.push({ state, color: publicColorPicker.getColor() });
   newPublicStateSelect.value = '';
   renderHolidayList(publicHolidayListEl, publicHolidayStates, () => renderHolidayList(publicHolidayListEl, publicHolidayStates, () => {}));
   scheduleSave();
@@ -220,15 +271,13 @@ addSchoolHolidayBtn.addEventListener('click', () => {
   const state = newSchoolStateSelect.value;
   if (!state) return;
   if (schoolHolidayStates.some(s => s.state === state)) return;
-  schoolHolidayStates.push({ state, color: newSchoolColorInput.value });
+  schoolHolidayStates.push({ state, color: schoolColorPicker.getColor() });
   newSchoolStateSelect.value = '';
   renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => {}));
   scheduleSave();
 });
 
 targetUrlInput.addEventListener('input', scheduleSave);
-stripPositionSelect.addEventListener('change', scheduleSave);
-syncIntervalSelect.addEventListener('change', scheduleSave);
 
 saveBtn.addEventListener('click', () => {
   if (saveTimeout) clearTimeout(saveTimeout);

@@ -8,7 +8,6 @@
   </head>
   <body>
     <div class="container">
-      <h1>Crew Calendar Settings</h1>
 
       <section>
         <h2>Calendars</h2>
@@ -20,8 +19,8 @@
           <input type="url" id="newCalUrl" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" />
           <input type="text" id="newCalName" placeholder="Name (optional)" />
           <div class="color-row">
-            <label for="newCalColor">Color</label>
-            <input type="color" id="newCalColor" value="#4285f4" />
+            <label>Color</label>
+            <div id="newCalColorPicker" class="swatch-picker"></div>
             <button id="testUrl" type="button">Test</button>
             <button id="addCal" type="button" class="primary">Add</button>
           </div>
@@ -53,7 +52,7 @@
             <option value="SH">Schleswig-Holstein</option>
             <option value="TH">Thuringia</option>
           </select>
-          <input type="color" id="newPublicColor" value="#e8a020" />
+          <div id="newPublicColorPicker"></div>
           <button id="addPublicHoliday" type="button" class="primary">Add</button>
         </div>
       </section>
@@ -82,7 +81,7 @@
             <option value="SH">Schleswig-Holstein</option>
             <option value="TH">Thuringia</option>
           </select>
-          <input type="color" id="newSchoolColor" value="#4caf50" />
+          <div id="newSchoolColorPicker"></div>
           <button id="addSchoolHoliday" type="button" class="primary">Add</button>
         </div>
       </section>
@@ -93,25 +92,6 @@
           <label for="targetUrl">Airline Tool URL Pattern</label>
           <input type="text" id="targetUrl" placeholder="https://crew.airline.com/*" />
           <small>Use * as wildcard. The calendar strip only appears on pages matching this pattern.</small>
-        </div>
-      </section>
-
-      <section>
-        <h2>Display</h2>
-        <div class="field">
-          <label for="stripPosition">Strip Position</label>
-          <select id="stripPosition">
-            <option value="below">Below day bar</option>
-            <option value="above">Above day bar</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="syncInterval">Sync Interval (minutes)</label>
-          <select id="syncInterval">
-            <option value="15">15</option>
-            <option value="30" selected>30</option>
-            <option value="60">60</option>
-          </select>
         </div>
       </section>
 

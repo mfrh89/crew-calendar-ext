@@ -27,6 +27,7 @@ export function injectBanner(dayBar: DayBarInfo): void {
     font-size: 11px;
     color: #555;
     line-height: 1.4;
+    pointer-events: none;
   `;
   banner.innerHTML = '<strong style="color:#333;">Crew Calendar</strong> Personal calendar overlay — colored dots show your private events. Click for details.';
 
@@ -61,6 +62,7 @@ export function injectStrip(
     border-bottom: 2px solid #cc0000;
     font-family: Arial, sans-serif;
     box-sizing: border-box;
+    pointer-events: none;
   `;
 
   const eventsByDay = groupEventsByDay(events, dayBar.year, dayBar.month);
@@ -79,12 +81,12 @@ export function injectStrip(
 
     // Build box-shadow for stacked public holiday borders (2px per layer, inset)
     const boxShadow = pubLayers
-      .map((l, i) => `inset 0 0 0 ${(i + 1) * 2}px ${l.color}`)
+      .map((l, i) => `inset 0 0 0 ${(i + 1) * 2}px ${safeColor(l.color)}`)
       .join(', ');
 
     let bg: string;
     if (schoolLayer) {
-      bg = hexToRgba(schoolLayer.color, 0.35);
+      bg = hexToRgba(safeColor(schoolLayer.color), 0.35);
     } else {
       bg = isWeekend ? '#e0e0e0' : '#f0f0f0';
     }
@@ -103,6 +105,7 @@ export function injectStrip(
 
     if (dayEvents.length === 1) {
       const dot = createDot(dayEvents[0]);
+      dot.style.pointerEvents = 'auto';
       dot.addEventListener('click', (e) => {
         e.stopPropagation();
         onSingleClick(dayEvents, dayNum);
@@ -110,6 +113,7 @@ export function injectStrip(
       cell.appendChild(dot);
     } else if (dayEvents.length > 1) {
       cell.style.cursor = 'pointer';
+      cell.style.pointerEvents = 'auto';
       const visible = dayEvents.slice(0, MAX_DOTS);
       const hasOverflow = dayEvents.length > MAX_DOTS;
 
@@ -163,6 +167,10 @@ export function removeStrip(): void {
   document.getElementById(STRIP_ID)?.remove();
 }
 
+function safeColor(color: string): string {
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#888888';
+}
+
 function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace('#', '');
   const r = parseInt(h.substring(0, 2), 16);
@@ -177,7 +185,7 @@ function createDot(event: CalendarEvent): HTMLDivElement {
     width: ${DOT_SIZE}px;
     height: ${DOT_SIZE}px;
     border-radius: 50%;
-    background: ${event.color};
+    background: ${safeColor(event.color)};
     cursor: pointer;
     flex-shrink: 0;
     position: relative;

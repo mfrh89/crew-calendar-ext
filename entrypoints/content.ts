@@ -80,7 +80,7 @@ export default defineContentScript({
         }))
       );
       console.log('[CrewCal] Rendering', events.length, 'events for', dayBar.month + '/' + dayBar.year);
-      injectStrip(dayBar, events, currentSettings.stripPosition, showEventsModal, showEventsModal, publicHolidays, schoolHolidays);
+      injectStrip(dayBar, events, 'below', showEventsModal, showEventsModal, publicHolidays, schoolHolidays);
     }
 
     function showEventsModal(events: CalendarEvent[], day: number) {
@@ -236,7 +236,7 @@ function matchesTarget(url: string, pattern: string): boolean {
     .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
     .replace(/\*/g, '.*');
 
-  return new RegExp(escaped).test(normalizedUrl);
+  return new RegExp('^' + escaped).test(normalizedUrl);
 }
 
 function formatDate(d: Date): string {

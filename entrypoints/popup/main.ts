@@ -70,8 +70,14 @@ syncNowBtn.addEventListener('click', async () => {
   }, 1500);
 });
 
-openOptionsBtn.addEventListener('click', () => {
-  browser.runtime.openOptionsPage();
+openOptionsBtn.addEventListener('click', async () => {
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+  const windowId = tabs[0]?.windowId;
+  if (windowId != null) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (browser as any).sidePanel.open({ windowId });
+  }
+  window.close();
 });
 
 render();

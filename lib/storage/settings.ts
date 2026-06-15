@@ -7,7 +7,6 @@ export const settingsStorage = storage.defineItem<Settings>('local:settings', {
     calendarSources: [],
     targetUrl: '',
     syncIntervalMinutes: 30,
-    stripPosition: 'below',
     publicHolidayStates: [],
     schoolHolidayStates: [],
   },
