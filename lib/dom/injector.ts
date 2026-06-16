@@ -171,7 +171,9 @@ export function injectStrip(
 }
 
 export function removeStrip(): void {
+  const existed = !!document.getElementById(STRIP_ID);
   document.getElementById(STRIP_ID)?.remove();
+  if (existed) window.dispatchEvent(new Event('resize'));
 }
 
 function safeColor(color: string): string {
