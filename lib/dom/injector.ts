@@ -21,15 +21,14 @@ export function injectBanner(dayBar: DayBarInfo): void {
   banner.id = BANNER_ID;
   banner.style.cssText = `
     padding: 5px 10px;
-    background: #f8f8f4;
-    border-left: 3px solid #d4a017;
+    background: #05164D;
     font-family: Arial, sans-serif;
     font-size: 11px;
-    color: #555;
+    color: #fff;
     line-height: 1.4;
     pointer-events: none;
   `;
-  banner.innerHTML = '<strong style="color:#333;">Crew Calendar</strong> Personal calendar overlay — colored dots show your private events. Click for details.';
+  banner.innerHTML = '<strong>Crew Calendar</strong> — colored dots show your private events. Click for details.';
 
   canvas.parentNode!.insertBefore(banner, canvas);
 }
