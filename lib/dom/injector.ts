@@ -161,19 +161,22 @@ export function injectStrip(
     strip.appendChild(cell);
   }
 
+  // Overlay the strip on top of the canvas using negative margin so it
+  // doesn't shift the page layout (hover detail area stays in place)
   canvas.parentNode!.insertBefore(strip, canvas);
-
-  // Notify the page that layout shifted so it can recalculate element positions
-  window.dispatchEvent(new Event('resize'));
+  canvas.style.marginTop = `-${TOUCH_HEIGHT}px`;
 
   console.log('[CrewCal] Strip injected with', dayBar.totalColumns, 'columns,', dayBar.daysInMonth, 'active days');
   return strip;
 }
 
 export function removeStrip(): void {
-  const existed = !!document.getElementById(STRIP_ID);
-  document.getElementById(STRIP_ID)?.remove();
-  if (existed) window.dispatchEvent(new Event('resize'));
+  const strip = document.getElementById(STRIP_ID);
+  if (strip) {
+    const canvas = strip.nextElementSibling as HTMLElement | null;
+    if (canvas) canvas.style.marginTop = '';
+    strip.remove();
+  }
 }
 
 function safeColor(color: string): string {
