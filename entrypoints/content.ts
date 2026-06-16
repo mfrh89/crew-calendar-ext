@@ -67,7 +67,6 @@ export default defineContentScript({
 
       currentDayBar = dayBar;
       lastRenderKey = renderKey;
-      injectBanner(dayBar);
       const events = await loadEvents(dayBar.year, dayBar.month);
       const publicHolidays = (currentSettings.publicHolidayStates ?? []).map(cfg => ({
         days: getPublicHolidayDaysInMonth(dayBar.year, dayBar.month, cfg.state),
