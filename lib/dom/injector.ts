@@ -163,6 +163,9 @@ export function injectStrip(
 
   canvas.parentNode!.insertBefore(strip, canvas);
 
+  // Notify the page that layout shifted so it can recalculate element positions
+  window.dispatchEvent(new Event('resize'));
+
   console.log('[CrewCal] Strip injected with', dayBar.totalColumns, 'columns,', dayBar.daysInMonth, 'active days');
   return strip;
 }

@@ -307,7 +307,7 @@ button.primary:hover {
 .swatch-dropdown {
   position: absolute;
   top: 32px;
-  left: 0;
+  right: 0;
   z-index: 100;
   background: #fff;
   border: 1px solid #d0d6e4;
