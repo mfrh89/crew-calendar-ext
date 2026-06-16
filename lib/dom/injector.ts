@@ -73,8 +73,8 @@ export function injectStrip(
     const dayEvents = inMonth ? (eventsByDay.get(dayNum) ?? []) : [];
     const isWeekend = inMonth && isWeekendDay(dayBar.year, dayBar.month, dayNum);
 
-    // School holiday: first matching layer determines background color
-    const schoolLayer = inMonth ? schoolHolidays.find(l => l.days.has(dayNum)) : undefined;
+    // School holidays: collect all matching layers
+    const schoolLayers = inMonth ? schoolHolidays.filter(l => l.days.has(dayNum)) : [];
 
     // Public holidays: collect all matching layers for border
     const pubLayers = inMonth ? publicHolidays.filter(l => l.days.has(dayNum)) : [];
@@ -85,8 +85,12 @@ export function injectStrip(
       .join(', ');
 
     let bg: string;
-    if (schoolLayer) {
-      bg = hexToRgba(safeColor(schoolLayer.color), 0.35);
+    if (schoolLayers.length >= 2) {
+      const c1 = hexToRgba(safeColor(schoolLayers[0].color), 0.45);
+      const c2 = hexToRgba(safeColor(schoolLayers[1].color), 0.45);
+      bg = `linear-gradient(135deg, ${c1} 50%, ${c2} 50%)`;
+    } else if (schoolLayers.length === 1) {
+      bg = hexToRgba(safeColor(schoolLayers[0].color), 0.35);
     } else {
       bg = isWeekend ? '#e0e0e0' : '#f0f0f0';
     }
