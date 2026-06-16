@@ -314,7 +314,9 @@ button.primary:hover {
   border-radius: 4px;
   padding: 8px;
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+  width: 160px;
   box-shadow: 0 4px 12px rgba(5, 22, 77, 0.12);
 }
 

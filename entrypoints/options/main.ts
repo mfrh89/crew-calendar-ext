@@ -41,27 +41,39 @@ let publicHolidayStates: HolidayStateConfig[] = [];
 let schoolHolidayStates: HolidayStateConfig[] = [];
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
+let closeActivePicker: (() => void) | null = null;
+
 function createSwatchPicker(container: HTMLElement, defaultColor: string): { getColor: () => string; setColor: (c: string) => void } {
   let selected = PALETTE.includes(defaultColor) ? defaultColor : PALETTE[0];
   let open = false;
   container.className = 'swatch-picker-wrap';
 
+  function close() {
+    open = false;
+    render();
+  }
+
   function render() {
     container.innerHTML = '';
 
-    // Trigger: single colored dot
     const trigger = document.createElement('button');
     trigger.type = 'button';
     trigger.className = 'swatch-trigger';
     trigger.style.background = selected;
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (!open) {
+        // Close any other open picker first
+        if (closeActivePicker && closeActivePicker !== close) closeActivePicker();
+        closeActivePicker = close;
+      } else {
+        closeActivePicker = null;
+      }
       open = !open;
       render();
     });
     container.appendChild(trigger);
 
-    // Dropdown palette
     if (open) {
       const dropdown = document.createElement('div');
       dropdown.className = 'swatch-dropdown';
@@ -74,6 +86,7 @@ function createSwatchPicker(container: HTMLElement, defaultColor: string): { get
           e.stopPropagation();
           selected = color;
           open = false;
+          closeActivePicker = null;
           render();
         });
         dropdown.appendChild(swatch);
@@ -81,8 +94,8 @@ function createSwatchPicker(container: HTMLElement, defaultColor: string): { get
       container.appendChild(dropdown);
 
       // Close on outside click
-      const close = () => { open = false; render(); document.removeEventListener('click', close); };
-      setTimeout(() => document.addEventListener('click', close), 0);
+      const outsideClose = () => { open = false; closeActivePicker = null; render(); document.removeEventListener('click', outsideClose); };
+      setTimeout(() => document.addEventListener('click', outsideClose), 0);
     }
   }
 
