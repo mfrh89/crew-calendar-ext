@@ -127,8 +127,8 @@ async function init() {
   schoolHolidayStates = [...(settings.schoolHolidayStates ?? [])];
   targetUrlInput.value = settings.targetUrl;
   renderCalendars();
-  renderHolidayList(publicHolidayListEl, publicHolidayStates, () => renderHolidayList(publicHolidayListEl, publicHolidayStates, () => {}));
-  renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => {}));
+  renderPublicHolidays();
+  renderSchoolHolidays();
 }
 
 function renderCalendars() {
@@ -257,13 +257,21 @@ addCalBtn.addEventListener('click', async () => {
   scheduleSave();
 });
 
+function renderPublicHolidays() {
+  renderHolidayList(publicHolidayListEl, publicHolidayStates, renderPublicHolidays);
+}
+
+function renderSchoolHolidays() {
+  renderHolidayList(schoolHolidayListEl, schoolHolidayStates, renderSchoolHolidays);
+}
+
 addPublicHolidayBtn.addEventListener('click', () => {
   const state = newPublicStateSelect.value;
   if (!state) return;
   if (publicHolidayStates.some(s => s.state === state)) return;
   publicHolidayStates.push({ state, color: publicColorPicker.getColor() });
   newPublicStateSelect.value = '';
-  renderHolidayList(publicHolidayListEl, publicHolidayStates, () => renderHolidayList(publicHolidayListEl, publicHolidayStates, () => {}));
+  renderPublicHolidays();
   scheduleSave();
 });
 
@@ -273,7 +281,7 @@ addSchoolHolidayBtn.addEventListener('click', () => {
   if (schoolHolidayStates.some(s => s.state === state)) return;
   schoolHolidayStates.push({ state, color: schoolColorPicker.getColor() });
   newSchoolStateSelect.value = '';
-  renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => renderHolidayList(schoolHolidayListEl, schoolHolidayStates, () => {}));
+  renderSchoolHolidays();
   scheduleSave();
 });
 
