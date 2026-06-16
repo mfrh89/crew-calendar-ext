@@ -21,7 +21,7 @@ export function injectBanner(dayBar: DayBarInfo): void {
   banner.id = BANNER_ID;
   banner.style.cssText = `
     padding: 5px 10px;
-    background: #05164D;
+    background: #000058;
     font-family: Arial, sans-serif;
     font-size: 11px;
     color: #fff;
