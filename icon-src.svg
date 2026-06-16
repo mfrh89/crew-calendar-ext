@@ -1,25 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <!-- White circle with thin navy border -->
-  <circle cx="64" cy="64" r="61" fill="white" stroke="#05164D" stroke-width="4.5"/>
+  <!-- Filled navy circle -->
+  <circle cx="64" cy="64" r="62" fill="#05164D"/>
 
-  <!-- Calendar body -->
-  <rect x="28" y="30" width="72" height="70" rx="5" ry="5" fill="white" stroke="#05164D" stroke-width="4.5"/>
+  <!-- Calendar body border (white) -->
+  <rect x="24" y="30" width="80" height="72" rx="6" ry="6" fill="#05164D" stroke="white" stroke-width="4"/>
 
-  <!-- Calendar header bar -->
-  <rect x="28" y="30" width="72" height="22" rx="5" ry="5" fill="#05164D"/>
-  <rect x="28" y="42" width="72" height="10" fill="#05164D"/>
+  <!-- Calendar header bar (white, slim) -->
+  <rect x="24" y="30" width="80" height="16" rx="6" ry="6" fill="white"/>
+  <rect x="24" y="38" width="80" height="8" fill="white"/>
 
-  <!-- Ring hooks -->
-  <rect x="43" y="20" width="8" height="18" rx="4" fill="#05164D"/>
-  <rect x="77" y="20" width="8" height="18" rx="4" fill="#05164D"/>
+  <!-- Ring hooks (white) -->
+  <rect x="39" y="18" width="11" height="20" rx="5.5" fill="white"/>
+  <rect x="78" y="18" width="11" height="20" rx="5.5" fill="white"/>
 
-  <!-- 3×2 grid -->
-  <!-- Row 1 -->
-  <rect x="35" y="61" width="15" height="13" rx="2.5" fill="#05164D"/>
-  <rect x="57" y="61" width="15" height="13" rx="2.5" fill="#05164D"/>
-  <rect x="78" y="61" width="15" height="13" rx="2.5" fill="#05164D"/>
-  <!-- Row 2 -->
-  <rect x="35" y="78" width="15" height="13" rx="2.5" fill="#05164D"/>
-  <rect x="57" y="78" width="15" height="13" rx="2.5" fill="#05164D"/>
-  <rect x="78" y="78" width="15" height="13" rx="2.5" fill="#05164D"/>
+  <!-- 3×3 grid of white dots -->
+  <rect x="34" y="53" width="14" height="13" rx="2.5" fill="white"/>
+  <rect x="57" y="53" width="14" height="13" rx="2.5" fill="white"/>
+  <rect x="80" y="53" width="14" height="13" rx="2.5" fill="white"/>
+
+  <rect x="34" y="70" width="14" height="13" rx="2.5" fill="white"/>
+  <rect x="57" y="70" width="14" height="13" rx="2.5" fill="white"/>
+  <rect x="80" y="70" width="14" height="13" rx="2.5" fill="white"/>
+
+  <rect x="34" y="87" width="14" height="11" rx="2.5" fill="white"/>
+  <rect x="57" y="87" width="14" height="11" rx="2.5" fill="white"/>
+  <rect x="80" y="87" width="14" height="11" rx="2.5" fill="white"/>
 </svg>
