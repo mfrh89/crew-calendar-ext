@@ -20,7 +20,7 @@ export function parseICS(
         uid: event.uid,
         summary: event.summary || '(no title)',
         dtstart: event.startDate.toJSDate().toISOString(),
-        dtend: event.endDate.toJSDate().toISOString(),
+        dtend: (event.endDate ?? event.startDate).toJSDate().toISOString(),
         location: event.location || undefined,
         description: event.description || undefined,
         sourceUrl,

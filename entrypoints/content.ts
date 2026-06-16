@@ -84,6 +84,7 @@ export default defineContentScript({
     }
 
     function showEventsModal(events: CalendarEvent[], day: number) {
+      if (!currentDayBar) return;
       closeModal();
 
       const sorted = [...events].sort((a, b) => {

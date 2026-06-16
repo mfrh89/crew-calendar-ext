@@ -223,7 +223,7 @@ function groupEventsByDay(
 
     const startDay = effectiveStart.getDate();
     const endDay = event.isAllDay
-      ? new Date(effectiveEnd.getTime() - 86400000).getDate() || effectiveEnd.getDate()
+      ? Math.min(new Date(effectiveEnd.getTime() - 86400000).getDate(), new Date(year, month, 0).getDate())
       : effectiveEnd.getDate();
 
     for (let d = startDay; d <= endDay && d <= new Date(year, month, 0).getDate(); d++) {

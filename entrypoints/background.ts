@@ -95,7 +95,7 @@ async function syncAll(): Promise<void> {
     for (const ev of allEvents) {
       const start = new Date(ev.dtstart);
       const end = new Date(ev.dtend);
-      for (let d = new Date(start.getFullYear(), start.getMonth(), 1); d <= end; d.setMonth(d.getMonth() + 1)) {
+      for (let d = new Date(start.getFullYear(), start.getMonth(), 1); d <= end && d.getFullYear() - start.getFullYear() < 3; d.setMonth(d.getMonth() + 1)) {
         monthKeys.add(`${d.getFullYear()}-${d.getMonth() + 1}`);
       }
     }
