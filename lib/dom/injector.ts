@@ -2,7 +2,7 @@ import type { DayBarInfo, CalendarEvent } from '../types';
 
 const STRIP_ID = 'crew-calendar-strip';
 const BANNER_ID = 'crew-calendar-banner';
-const TOUCH_HEIGHT = 44;
+const TOUCH_HEIGHT = 38;
 const MAX_DOTS = 3;
 const DOT_SIZE = 10;
 const DOT_OVERLAP = -3;
