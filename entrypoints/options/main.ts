@@ -300,6 +300,11 @@ addSchoolHolidayBtn.addEventListener('click', () => {
 
 targetUrlInput.addEventListener('input', scheduleSave);
 
+document.getElementById('helpLink')!.addEventListener('click', (e) => {
+  e.preventDefault();
+  browser.tabs.create({ url: browser.runtime.getURL('help.html') });
+});
+
 saveBtn.addEventListener('click', () => {
   if (saveTimeout) clearTimeout(saveTimeout);
   save();

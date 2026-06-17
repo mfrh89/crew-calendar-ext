@@ -200,6 +200,19 @@ button.primary:hover {
   margin-bottom: 8px;
 }
 
+.help-link {
+  display: block;
+  font-size: 11px;
+  color: #7a87a8;
+  margin-bottom: 10px;
+  text-decoration: none;
+}
+
+.help-link:hover {
+  color: #05164D;
+  text-decoration: underline;
+}
+
 .color-row {
   display: flex;
   align-items: center;
