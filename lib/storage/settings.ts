@@ -5,7 +5,7 @@ export const settingsStorage = storage.defineItem<Settings>('local:settings', {
   defaultValue: {
     enabled: true,
     calendarSources: [],
-    targetUrl: '',
+    targetUrl: 'https://cra.cms.lhgroup.de/*',
     syncIntervalMinutes: 30,
     publicHolidayStates: [],
     schoolHolidayStates: [],
