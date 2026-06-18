@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crew Calendar — How to find your calendar URL</title>
+  <title>Crew Calendar — Kalender-URL finden</title>
   <style>
     * { box-sizing: border-box; margin: 0; }
     body {
@@ -98,58 +98,56 @@
 </head>
 <body>
   <div class="container">
-    <h1>How to find your calendar URL</h1>
-    <p class="subtitle">Crew Calendar uses a private ICS link to read your events. Here's how to get it.</p>
-
-    <!-- Google Calendar -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon google">📅</div>
-        <h2>Google Calendar</h2>
-      </div>
-      <ol>
-        <li>Open <strong>Google Calendar</strong> in your browser (<a href="https://calendar.google.com" target="_blank">calendar.google.com</a>)</li>
-        <li>In the left sidebar, hover over the calendar you want to add and click the <strong>three dots (⋮)</strong></li>
-        <li>Click <strong>"Settings and sharing"</strong></li>
-        <li>Scroll down to <strong>"Integrate calendar"</strong></li>
-        <li>Copy the link under <strong>"Secret address in iCal format"</strong></li>
-      </ol>
-      <div class="url-box">https://calendar.google.com/calendar/ical/youraddress%40gmail.com/private-xxxxx/basic.ics</div>
-      <div class="note">⚠️ Use the <strong>Secret address</strong>, not the public one — the secret address includes your private events.</div>
-    </div>
+    <h1>Kalender-URL finden</h1>
+    <p class="subtitle">Crew Calendar benötigt einen privaten ICS-Link zu deinem Kalender. So bekommst du ihn.</p>
 
     <!-- Apple Calendar / iCloud -->
     <div class="card">
       <div class="card-header">
         <div class="card-icon apple">🍎</div>
-        <h2>Apple Calendar <span class="tag">iCloud</span></h2>
+        <h2>Apple Kalender <span class="tag">iCloud</span></h2>
       </div>
       <ol>
-        <li>Open <strong>Calendar</strong> on your Mac</li>
-        <li>Right-click the calendar you want to share in the left sidebar</li>
-        <li>Click <strong>"Share Calendar…"</strong></li>
-        <li>Enable <strong>"Public Calendar"</strong></li>
-        <li>Click <strong>"Copy Link"</strong> — this gives you a <code>webcal://</code> URL</li>
-        <li>Replace <code>webcal://</code> with <code>https://</code> before pasting into Crew Calendar</li>
+        <li>Öffne die <strong>Kalender</strong>-App auf deinem Mac</li>
+        <li>Rechtsklick auf den gewünschten Kalender in der linken Seitenleiste</li>
+        <li>Klicke auf <strong>„Kalender teilen …"</strong></li>
+        <li>Aktiviere <strong>„Öffentlicher Kalender"</strong></li>
+        <li>Klicke auf <strong>„Link kopieren"</strong> — du erhältst eine <code>webcal://</code>-URL</li>
+        <li>Ersetze <code>webcal://</code> durch <code>https://</code> bevor du den Link in Crew Calendar einfügst</li>
       </ol>
       <div class="url-box">https://p01-caldav.icloud.com/published/2/yourlink.ics</div>
-      <div class="note">⚠️ A public iCloud calendar is visible to anyone with the link. Only share calendars that don't contain sensitive personal information.<br><br>🔒 <strong>Crew Calendar</strong> processes your calendar data locally in your browser and never transmits it to any server or third party. Your URL and all event data remain private.</div>
+      <div class="note">⚠️ Ein öffentlicher iCloud-Kalender ist für jeden mit dem Link sichtbar. Teile daher nur Kalender ohne sensible persönliche Informationen.<br><br>🔒 <strong>Crew Calendar</strong> verarbeitet alle Kalenderdaten ausschließlich lokal in deinem Browser und gibt nichts an Server oder Dritte weiter. Deine URL und alle Termindaten bleiben privat.</div>
     </div>
 
     <!-- Apple Calendar iOS -->
     <div class="card">
       <div class="card-header">
         <div class="card-icon apple">📱</div>
-        <h2>Apple Calendar <span class="tag">iPhone / iPad</span></h2>
+        <h2>Apple Kalender <span class="tag">iPhone / iPad</span></h2>
       </div>
       <ol>
-        <li>Open <strong>Settings</strong> → <strong>Calendar</strong> → <strong>Accounts</strong></li>
-        <li>Tap your iCloud account → <strong>Calendar</strong></li>
-        <li>Alternatively, open the <strong>Calendar</strong> app → tap <strong>Calendars</strong> at the bottom</li>
-        <li>Tap the <strong>ⓘ</strong> next to the calendar → <strong>Share Calendar</strong></li>
-        <li>Enable <strong>Public Calendar</strong> and tap <strong>Share Link</strong></li>
-        <li>Replace <code>webcal://</code> with <code>https://</code> before using</li>
+        <li>Öffne die <strong>Kalender</strong>-App → tippe unten auf <strong>„Kalender"</strong></li>
+        <li>Tippe auf das <strong>ⓘ</strong> neben dem gewünschten Kalender → <strong>„Kalender teilen"</strong></li>
+        <li>Aktiviere <strong>„Öffentlicher Kalender"</strong> und tippe auf <strong>„Link teilen"</strong></li>
+        <li>Ersetze <code>webcal://</code> durch <code>https://</code> bevor du den Link verwendest</li>
       </ol>
+    </div>
+
+    <!-- Google Calendar -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon google">📅</div>
+        <h2>Google Kalender</h2>
+      </div>
+      <ol>
+        <li>Öffne <strong>Google Kalender</strong> im Browser (<a href="https://calendar.google.com" target="_blank">calendar.google.com</a>)</li>
+        <li>Fahre in der linken Seitenleiste über den gewünschten Kalender und klicke auf die <strong>drei Punkte (⋮)</strong></li>
+        <li>Klicke auf <strong>„Einstellungen und Freigabe"</strong></li>
+        <li>Scrolle nach unten zu <strong>„Kalender einbinden"</strong></li>
+        <li>Kopiere den Link unter <strong>„Geheime Adresse im iCal-Format"</strong></li>
+      </ol>
+      <div class="url-box">https://calendar.google.com/calendar/ical/youraddress%40gmail.com/private-xxxxx/basic.ics</div>
+      <div class="note">⚠️ Verwende unbedingt die <strong>geheime Adresse</strong>, nicht die öffentliche — nur die geheime Adresse enthält deine privaten Termine.</div>
     </div>
 
   </div>

@@ -14,8 +14,8 @@ async function render() {
 
   if (settings.calendarSources.length === 0) {
     statusIcon.className = 'icon unconfigured';
-    statusText.textContent = 'No calendars added';
-    lastSyncEl.textContent = 'Open settings to add a calendar URL.';
+    statusText.textContent = 'Kein Kalender hinzugefügt';
+    lastSyncEl.textContent = 'Öffne die Einstellungen, um einen Kalender hinzuzufügen.';
     syncNowBtn.disabled = true;
     return;
   }
@@ -24,7 +24,7 @@ async function render() {
   statusIcon.className = `icon ${settings.enabled ? state.status : 'unconfigured'}`;
 
   if (!settings.enabled) {
-    statusText.textContent = 'Disabled';
+    statusText.textContent = 'Deaktiviert';
     lastSyncEl.textContent = '';
     syncNowBtn.disabled = true;
     return;
@@ -32,13 +32,13 @@ async function render() {
 
   switch (state.status) {
     case 'idle':
-      statusText.textContent = `${settings.calendarSources.length} calendar(s)`;
+      statusText.textContent = `${settings.calendarSources.length} Kalender`;
       break;
     case 'syncing':
-      statusText.textContent = 'Syncing...';
+      statusText.textContent = 'Synchronisiere...';
       break;
     case 'error':
-      statusText.textContent = 'Sync error';
+      statusText.textContent = 'Synchronisierungsfehler';
       break;
   }
 
@@ -46,9 +46,9 @@ async function render() {
     lastSyncEl.textContent = state.error;
   } else if (state.lastSync) {
     const d = new Date(state.lastSync);
-    lastSyncEl.textContent = `Last sync: ${d.toLocaleString('de-DE')}`;
+    lastSyncEl.textContent = `Zuletzt synchronisiert: ${d.toLocaleString('de-DE')}`;
   } else {
-    lastSyncEl.textContent = 'Never synced';
+    lastSyncEl.textContent = 'Noch nie synchronisiert';
   }
 
   syncNowBtn.disabled = state.status === 'syncing';
@@ -62,10 +62,10 @@ enableToggle.addEventListener('change', async () => {
 
 syncNowBtn.addEventListener('click', async () => {
   syncNowBtn.disabled = true;
-  syncNowBtn.textContent = 'Syncing...';
+  syncNowBtn.textContent = 'Synchronisiere...';
   await browser.runtime.sendMessage({ type: 'SYNC_NOW' });
   setTimeout(async () => {
-    syncNowBtn.textContent = 'Sync Now';
+    syncNowBtn.textContent = 'Jetzt synchronisieren';
     await render();
   }, 1500);
 });

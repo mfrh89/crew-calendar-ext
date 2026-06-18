@@ -94,6 +94,7 @@ export function injectStrip(
       bg = isWeekend ? '#e0e0e0' : '#f0f0f0';
     }
 
+    const borderColor = isWeekend ? '#ececec' : '#ddd';
     const cell = document.createElement('div');
     cell.style.cssText = `
       height: ${TOUCH_HEIGHT}px;
@@ -101,7 +102,7 @@ export function injectStrip(
       align-items: center;
       justify-content: center;
       box-sizing: border-box;
-      border-right: 1px solid #ddd;
+      border-right: 1px solid ${borderColor};
       background: ${bg};
       ${boxShadow ? `box-shadow: ${boxShadow};` : ''}
     `;

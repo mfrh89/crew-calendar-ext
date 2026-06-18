@@ -123,7 +123,7 @@ async function save() {
 
   try { await browser.runtime.sendMessage({ type: 'SYNC_NOW' }); } catch { /* service worker may be inactive */ }
 
-  saveStatusEl.textContent = 'Saved!';
+  saveStatusEl.textContent = 'Gespeichert!';
   setTimeout(() => { saveStatusEl.textContent = ''; }, 2000);
 }
 
@@ -158,7 +158,7 @@ function renderCalendars() {
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.className = 'cal-name-input';
-    nameInput.value = src.name || 'Calendar';
+    nameInput.value = src.name || 'Kalender';
     nameInput.addEventListener('input', () => {
       calendarSources[i].name = nameInput.value;
       scheduleSave();
@@ -231,7 +231,7 @@ testUrlBtn.addEventListener('click', async () => {
 
   const granted = await requestHostPermission(url);
   if (!granted) {
-    showStatus(testStatusEl, 'Permission denied. The extension needs access to fetch this URL.', 'error');
+    showStatus(testStatusEl, 'Zugriff verweigert. Die Erweiterung benötigt Zugriff, um diese URL abzurufen.', 'error');
     return;
   }
 
@@ -245,9 +245,9 @@ testUrlBtn.addEventListener('click', async () => {
   testUrlBtn.textContent = 'Test';
 
   if (response.success) {
-    showStatus(testStatusEl, `OK - ${response.eventCount} events found.`, 'success');
+    showStatus(testStatusEl, `OK – ${response.eventCount} Termine gefunden.`, 'success');
   } else {
-    showStatus(testStatusEl, `Failed: ${response.error}`, 'error');
+    showStatus(testStatusEl, `Fehler: ${response.error}`, 'error');
   }
 });
 
@@ -259,7 +259,7 @@ addCalBtn.addEventListener('click', async () => {
 
   calendarSources.push({
     url,
-    name: newCalNameInput.value.trim() || 'Calendar',
+    name: newCalNameInput.value.trim() || 'Kalender',
     color: calColorPicker.getColor(),
   });
 

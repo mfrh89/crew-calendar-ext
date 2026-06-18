@@ -376,3 +376,11 @@ button.primary:hover {
 .add-holiday-row select {
   flex: 1;
 }
+
+.footer {
+  text-align: center;
+  font-size: 11px;
+  color: #b0b8cc;
+  margin-top: 24px;
+  padding-bottom: 8px;
+}

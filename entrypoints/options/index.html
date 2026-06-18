@@ -1,107 +1,108 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crew Calendar - Settings</title>
+    <title>Crew Calendar - Einstellungen</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <div class="container">
 
       <section>
-        <h2>Calendars</h2>
-        <p class="hint">Paste the iCal/ICS URL from your calendar provider. You can add multiple calendars.</p>
+        <h2>Kalender</h2>
+        <p class="hint">Füge die iCal/ICS-URL deines Kalenderanbieters ein. Du kannst mehrere Kalender hinzufügen.</p>
 
         <div id="calendarList"></div>
 
         <div class="add-calendar">
           <input type="url" id="newCalUrl" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" />
           <input type="text" id="newCalName" placeholder="Name (optional)" />
-          <a id="helpLink" href="#" class="help-link">Need help finding your calendar URL?</a>
+          <a id="helpLink" href="#" class="help-link">Wo finde ich meine Kalender-URL?</a>
           <div class="color-row">
-            <label>Color</label>
+            <label>Farbe</label>
             <div id="newCalColorPicker" class="swatch-picker"></div>
             <button id="testUrl" type="button">Test</button>
-            <button id="addCal" type="button" class="primary">Add</button>
+            <button id="addCal" type="button" class="primary">Hinzufügen</button>
           </div>
           <div id="testStatus" class="status" hidden></div>
         </div>
       </section>
 
       <section>
-        <h2>Public Holidays</h2>
-        <p class="hint">Select one or more German states. Holidays appear as a colored border around the day cell.</p>
+        <h2>Feiertage</h2>
+        <p class="hint">Wähle ein oder mehrere Bundesländer. Feiertage werden als farbiger Rand um die Tageszelle angezeigt.</p>
         <div id="publicHolidayList"></div>
         <div class="add-holiday-row">
           <select id="newPublicState">
-            <option value="">— Select state —</option>
+            <option value="">— Bundesland wählen —</option>
             <option value="BW">Baden-Württemberg</option>
-            <option value="BY">Bavaria</option>
+            <option value="BY">Bayern</option>
             <option value="BE">Berlin</option>
             <option value="BB">Brandenburg</option>
             <option value="HB">Bremen</option>
             <option value="HH">Hamburg</option>
-            <option value="HE">Hesse</option>
+            <option value="HE">Hessen</option>
             <option value="MV">Mecklenburg-Vorpommern</option>
-            <option value="NI">Lower Saxony</option>
-            <option value="NW">North Rhine-Westphalia</option>
-            <option value="RP">Rhineland-Palatinate</option>
+            <option value="NI">Niedersachsen</option>
+            <option value="NW">Nordrhein-Westfalen</option>
+            <option value="RP">Rheinland-Pfalz</option>
             <option value="SL">Saarland</option>
-            <option value="SN">Saxony</option>
-            <option value="ST">Saxony-Anhalt</option>
+            <option value="SN">Sachsen</option>
+            <option value="ST">Sachsen-Anhalt</option>
             <option value="SH">Schleswig-Holstein</option>
-            <option value="TH">Thuringia</option>
+            <option value="TH">Thüringen</option>
           </select>
           <div id="newPublicColorPicker"></div>
-          <button id="addPublicHoliday" type="button" class="primary">Add</button>
+          <button id="addPublicHoliday" type="button" class="primary">Hinzufügen</button>
         </div>
       </section>
 
       <section>
-        <h2>School Holidays</h2>
-        <p class="hint">Select one or more German states. School holidays appear as a colored background over the entire day cell.</p>
+        <h2>Schulferien</h2>
+        <p class="hint">Wähle ein oder mehrere Bundesländer. Schulferien werden als farbiger Hintergrund über die gesamte Tageszelle angezeigt.</p>
         <div id="schoolHolidayList"></div>
         <div class="add-holiday-row">
           <select id="newSchoolState">
-            <option value="">— Select state —</option>
+            <option value="">— Bundesland wählen —</option>
             <option value="BW">Baden-Württemberg</option>
-            <option value="BY">Bavaria</option>
+            <option value="BY">Bayern</option>
             <option value="BE">Berlin</option>
             <option value="BB">Brandenburg</option>
             <option value="HB">Bremen</option>
             <option value="HH">Hamburg</option>
-            <option value="HE">Hesse</option>
+            <option value="HE">Hessen</option>
             <option value="MV">Mecklenburg-Vorpommern</option>
-            <option value="NI">Lower Saxony</option>
-            <option value="NW">North Rhine-Westphalia</option>
-            <option value="RP">Rhineland-Palatinate</option>
+            <option value="NI">Niedersachsen</option>
+            <option value="NW">Nordrhein-Westfalen</option>
+            <option value="RP">Rheinland-Pfalz</option>
             <option value="SL">Saarland</option>
-            <option value="SN">Saxony</option>
-            <option value="ST">Saxony-Anhalt</option>
+            <option value="SN">Sachsen</option>
+            <option value="ST">Sachsen-Anhalt</option>
             <option value="SH">Schleswig-Holstein</option>
-            <option value="TH">Thuringia</option>
+            <option value="TH">Thüringen</option>
           </select>
           <div id="newSchoolColorPicker"></div>
-          <button id="addSchoolHoliday" type="button" class="primary">Add</button>
+          <button id="addSchoolHoliday" type="button" class="primary">Hinzufügen</button>
         </div>
       </section>
 
       <section>
-        <h2>Target URL</h2>
+        <h2>Ziel-URL</h2>
         <div class="field">
-          <label for="targetUrl">Airline Tool URL Pattern</label>
+          <label for="targetUrl">URL-Muster des Airline-Tools</label>
           <input type="text" id="targetUrl" placeholder="https://crew.airline.com/*" />
-          <small>Use * as wildcard. The calendar strip only appears on pages matching this pattern.</small>
+          <small>Verwende * als Platzhalter. Der Kalenderstreifen erscheint nur auf Seiten, die diesem Muster entsprechen.</small>
         </div>
       </section>
 
       <div class="actions">
-        <button id="save" type="button" class="primary">Save</button>
+        <button id="save" type="button" class="primary">Speichern</button>
         <span id="saveStatus"></span>
       </div>
     </div>
 
+    <p class="footer">Made with ❤️ in MUC</p>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
